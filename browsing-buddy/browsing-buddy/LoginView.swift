@@ -2,6 +2,6 @@
 //  LoginView.swift
 //  browsing-buddy
 //
-//  Created by Frida Granlund on 2025-03-09.
+//  Created by Frida "Bosse" Granlund on 2025-03-09.
 //
 
