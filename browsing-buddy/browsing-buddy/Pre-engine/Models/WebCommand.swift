@@ -55,7 +55,7 @@ struct WebCommand : Codable{
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.commandType = try container.decode(CommandType.self, forKey: .commandType)
         self.jsElementKey = try container.decode(String.self, forKey: .jsElementKey)
-        self.jsInputParameters = try container.decode([String].self, forKey: .jsInputParameters) ??  []
+        self.jsInputParameters = try container.decode([String].self, forKey: .jsInputParameters) 
         self.parameterAction = try container.decode(ParameterAction.self, forKey: .parameterAction)
         guard let parameterFromUser = self.parameterAction.getValue() else {
             return
