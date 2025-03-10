@@ -1,33 +1,54 @@
 //
-//  Engine-Old.swift
+//  Engine.swift
 //  browsing-buddy
 //
-//  Created by Denis Ureke on 2025-03-09.
+//  Created by Denis Ureke on 2025-03-10.
 //
 
-/*
 import UIKit
 import WebKit
 
 struct WebAction {
     let functionToCall: String
     let parameter: String
+    let willNavigate: Bool // måste vara med ifall navigation sker vid en action
+
+    init(functionToCall: String, parameter: String, willNavigate: Bool = false) {
+        self.functionToCall = functionToCall
+        self.parameter = parameter
+        self.willNavigate = willNavigate
+    }
 }
 
-class WebViewController: UIViewController, WKNavigationDelegate {
+class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
     
     var webView: WKWebView!
     var actionQueue: [WebAction] = []
     var isProcessing = false
+    var isNavigating = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let contentController = WKUserContentController()
+        contentController.add(self, name: "callbackHandler")
+        
         let config = WKWebViewConfiguration()
+        config.userContentController = contentController
         config.defaultWebpagePreferences.allowsContentJavaScript = true
+        
         webView = WKWebView(frame: self.view.bounds, configuration: config)
         webView.navigationDelegate = self
         view.addSubview(webView)
+    }
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "callbackHandler" {
+            print("JavaScript says: \(message.body)")
+            if !isNavigating {
+                processNextAction()
+            }
+        }
     }
     
     func startProcessingQueue() {
@@ -58,10 +79,10 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             }
         case "D":
             print("Entered D")
-            //clickElementClass(withClass: action.parameter)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                self.clickElementClass(withClass: action.parameter)
-            }
+            clickElementClass(withClass: action.parameter, willNavigate: action.willNavigate)
+            /*DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+             self.clickElementClass(withClass: action.parameter)
+             }*/
             
         case "E":
             print("Entered E")
@@ -74,16 +95,31 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             
         case "G":
             print("Entered G")
-            //clickElementByXPath(xpath: action.parameter)
+            //clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate )
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
-                self.clickElementByXPath(xpath: action.parameter)
-            }
+             self.clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate)
+             }
             
         default:
             print("Unknown action: \(action.functionToCall)")
             processNextAction()
         }
     }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        print("Page Loaded!!")
+        if isNavigating {
+            isNavigating = false
+        }
+        processNextAction()
+    }
+    
+    func addActions(_ actions: [WebAction]) {
+        actionQueue.append(contentsOf: actions)
+        startProcessingQueue()
+    }
+    
+    // Funktioner för som kallas
     
     private func navigateToPage(urlString: String) {
         if let url = URL(string: urlString) {
@@ -92,28 +128,69 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
     
-    private func clickElement(withId id: String) {
-        let js = """
-        function waitForElement(id, callback) {
-            var element = document.getElementById(id);
-            if (element) {
-                callback(element);
+    func testJavaScriptExecution() {
+        let js = "alert('JavaScript is working!');"
+        
+        webView.evaluateJavaScript(js) { result, error in
+            if let error = error {
+                print("JavaScript execution failed: \(error.localizedDescription)")
             } else {
-                setTimeout(function() { waitForElement(id, callback); }, 500);
+                print("JavaScript executed successfully.")
             }
         }
-        waitForElement('\(id)', function(element) { element.click(); });
+    }
+    
+    private func clickElement(withId id: String) {
+        let js = """
+        function waitForElement(id) {
+            var element = document.getElementById(id);
+            if (element) {
+                element.click();
+                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with id: ' + id);
+            } else {
+                setTimeout(function() { waitForElement(id); }, 500); // Keep retrying until found
+            }
+        }
+        waitForElement('\(id)');
         """
         
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
-                print("Error clicking element: \(error)")
+                print("JavaScript injection error: \(error.localizedDescription)")
+                self.processNextAction() // Hantera om det inte fungerar
             }
-            self.processNextAction()
+            // bättre och logga i callbackhandler
         }
     }
     
-    private func clickElementClass(withClass className: String) {
+    //klar
+    private func clickElementClass(withClass className: String, willNavigate navigate: Bool) {
+        isNavigating = navigate
+        
+        let js = """
+        function waitForElement(className) {
+            var elements = document.getElementsByClassName(className);
+            if (elements.length > 0) {
+                console.log("Element found, clicking...");
+                elements[0].click(); // Click the first element
+                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with class: ' + className);
+            } else {
+                console.log("Element not found, retrying...");
+                setTimeout(function() { waitForElement(className); }, 500); // Retry until found
+            }
+        }
+        waitForElement('\(className)');
+        """
+        
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript Error: \(error.localizedDescription)")
+                self.processNextAction()
+            }
+        }
+    }
+    
+    private func clickElementClass2(withClass className: String) {
         let js = """
         function waitForElement(className, callback) {
             var elements = document.getElementsByClassName(className);
@@ -127,7 +204,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
         waitForElement('\(className)');
         """
-
+        
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript Error: \(error.localizedDescription)")
@@ -138,52 +215,6 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
     
-    /*private func clickElementClass(withClass className: String) {
-        let js = """
-        function waitForElement(className) {
-            var elements = document.getElementsByClassName(className);
-            if (elements.length > 0) {
-                console.log("Element found, adding overlay...");
-
-                var element = elements[0];
-
-                var rect = element.getBoundingClientRect();
-
-                var overlay = document.createElement("div");
-                overlay.style.position = "absolute";
-                overlay.style.top = rect.top + window.scrollY + "px";
-                overlay.style.left = rect.left + window.scrollX + "px";
-                overlay.style.width = rect.width + "px";
-                overlay.style.height = rect.height + "px";
-                overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)"; // Blue semi-transparent
-                overlay.style.zIndex = "5000";
-                overlay.style.pointerEvents = "none";
-
-                document.body.appendChild(overlay);
-
-                setTimeout(function() {
-                    overlay.remove();
-                    element.click();
-                    console.log("Element clicked!");
-                }, 500); // Delay to make the highlight visible
-            } else {
-                console.log("Element not found, retrying...");
-                setTimeout(function() { waitForElement(className); }, 500);
-            }
-        }
-        waitForElement('\(className)');
-        """
-
-        webView.evaluateJavaScript(js) { _, error in
-            if let error = error {
-                print("JavaScript Error: \(error.localizedDescription)")
-            } else {
-                print("JavaScript executed successfully, overlay added and element clicked.")
-            }
-            self.processNextAction()
-        }
-    }*/
-
     
     private func fillInputField(withId id: String, value: String) {
         let js = """
@@ -200,7 +231,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
         waitForInput('\(id)', '\(value)', function() {});
         """
-
+        
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript Error: \(error.localizedDescription)")
@@ -234,7 +265,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
         waitForInput('\(name)', '\(value)', function() {});
         """
-
+        
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript Error: \(error.localizedDescription)")
@@ -258,7 +289,7 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
         waitForElement('\(label)', function() {});
         """
-
+        
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript Error: \(error.localizedDescription)")
@@ -268,52 +299,32 @@ class WebViewController: UIViewController, WKNavigationDelegate {
             self.processNextAction()
         }
     }
-
-    private func clickElementByXPath(xpath: String) {
+    
+    //klar
+    private func clickElementByXPath(xpath: String, willNavigate navigate: Bool) {
+        isNavigating = navigate
+        
         let js = """
-        function waitForElement(xpath, callback) {
+        function waitForElement(xpath) {
             var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             if (element) {
+                console.log('Element found using XPath, clicking...');
                 element.click();
-                callback();
+                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath); // ✅ Notify Swift when done
             } else {
-                setTimeout(function() { waitForElement(xpath, callback); }, 500);
+                console.log('Element not found, retrying...');
+                setTimeout(function() { waitForElement(xpath); }, 500); // Retry until found
             }
         }
-        waitForElement('\(xpath)', function() {});
+        waitForElement('\(xpath)');
         """
-
+        
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
-                print("JavaScript Error: \(error.localizedDescription)")
-            } else {
-                print("JavaScript executed successfully, element clicked using XPath.")
-            }
-            self.processNextAction()
-        }
-    }
-
-    
-    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("Page Loaded!!")
-        processNextAction()
-    }
-    
-    func addActions(_ actions: [WebAction]) {
-        actionQueue.append(contentsOf: actions)
-        startProcessingQueue()
-    }
-    
-    func testJavaScriptExecution() {
-        let js = "alert('JavaScript is working!');"
-        
-        webView.evaluateJavaScript(js) { result, error in
-            if let error = error {
-                print("JavaScript execution failed: \(error.localizedDescription)")
-            } else {
-                print("JavaScript executed successfully.")
+                print("JavaScript injection error: \(error.localizedDescription)")
+                self.processNextAction()
             }
         }
     }
+    
 }
-*/
