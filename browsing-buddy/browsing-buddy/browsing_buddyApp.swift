@@ -12,7 +12,10 @@ struct browsing_buddyApp: App {
     var body: some Scene {
         WindowGroup {
             //ButtonView()
-            CosmosDBView()
+            Text("Hello, MongoDB!")
+                       .onAppear {
+                           readDocumentsFromMongoDB()  // Call your function here
+                       }
         }
     }
 }
