@@ -21,19 +21,28 @@ struct DynamicButtonView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            ForEach(buttons, id: \.key) { buttonData in
-                createDynamicButton(text: buttonData.text)
+            ForEach(Array(buttons.enumerated()), id: \.element.key) { index, buttonData in
+                createDynamicButton(text: buttonData.text, index: index)
             }
         }
         .padding()
     }
+    
+    struct Usersettings {
+        static let textSize = 36;
+        static let myColor: Color = Color.blue
+    }
 
-    func createDynamicButton(text: String) -> some View {
-        Button(action: buttonAction) {
+    func createDynamicButton(text: String, index: Int) -> some View {
+        
+        Button(action: buttonAction) { // replace later for preengine
             Text(text)
                 .padding()
                 .frame(maxWidth: .infinity)
-                .background(Color.blue)
+                .background(Usersettings.myColor)
+                .font(.system(size: CGFloat(Usersettings.textSize)))
+                .minimumScaleFactor(0.5)
+                .lineLimit(1)
                 .foregroundColor(.white)
                 .cornerRadius(8)
         }
@@ -52,3 +61,4 @@ struct ButtonView: View {
         DynamicButtonView()
     }
 }
+

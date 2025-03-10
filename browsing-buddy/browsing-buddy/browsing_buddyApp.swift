@@ -11,7 +11,8 @@ import SwiftUI
 struct browsing_buddyApp: App {
     var body: some Scene {
         WindowGroup {
-            ButtonView()
+            //ButtonView()
+            CosmosDBView()
         }
     }
 }
