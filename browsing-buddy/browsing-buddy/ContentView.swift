@@ -8,17 +8,18 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var webViewController: WebViewController? = nil
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
-    }
-}
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                EngineView(webViewController: $webViewController)
+                    .frame(height: geometry.size.height * 0.8)
 
-#Preview {
-    ContentView()
+                //UIButtons(webViewController: webViewController)
+                    //.frame(height: geometry.size.height * 0.2)
+            }
+        }
+
+    }
 }

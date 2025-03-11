@@ -14,6 +14,8 @@ struct ButtonData {
 
 struct DynamicButtonView: View {
     
+    var webVieController: WebViewController!
+    
     @State private var buttons: [ButtonData] = [
         ButtonData(text: "Button 1", key: "btn1"),
         ButtonData(text: "Button 2", key: "btn2")
@@ -53,12 +55,6 @@ struct DynamicButtonView: View {
             ButtonData(text: "Button 3", key: "btn1"),
             ButtonData(text: "Button 4", key: "btn2")
         ]
-    }
-}
-
-struct ButtonView: View {
-    var body: some View {
-        DynamicButtonView()
     }
 }
 
