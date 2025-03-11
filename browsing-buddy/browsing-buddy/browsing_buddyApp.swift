@@ -11,11 +11,7 @@ import SwiftUI
 struct browsing_buddyApp: App {
     var body: some Scene {
         WindowGroup {
-            //ButtonView()
-            Text("Hello, MongoDB!")
-                       .onAppear {
-                           readDocumentsFromMongoDB()  // Call your function here
-                       }
+            ButtonView()
         }
     }
 }
