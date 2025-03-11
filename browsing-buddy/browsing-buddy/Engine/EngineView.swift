@@ -20,6 +20,6 @@ struct EngineView: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: WebViewController, context: Context) {
-        self.webViewController = uiViewController
+
     }
 }
