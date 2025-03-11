@@ -13,14 +13,16 @@ struct ButtonData {
 func orchestrator(key: String, webViewController: WebViewController?) -> [ButtonData] {
     
     let buttons1 = [
-        ButtonData(text: "Action 1", key: "1")
+        ButtonData(text: "Navigera", key: "1"),
+        ButtonData(text: "Navigera", key: "1"),
+        //ButtonData(text: "Navigera", key: "1")
     ]
     let buttons2 = [
-        ButtonData(text: "Action 2", key: "2")
+        ButtonData(text: "Uppdatera", key: "2")
     ]
     
     let actions1 = [
-        WebAction(functionToCall: "A", parameter: "https://www.jlt.se"),
+        //WebAction(functionToCall: "A", parameter: "https://www.jlt.se"),
         WebAction(functionToCall: "D", parameter: "jlt-icon-burger-alt-2"),
         WebAction(functionToCall: "D", parameter: "external", willNavigate: true),
         WebAction(functionToCall: "D", parameter: "sc-bwzfXH ebmuvs sc-htpNat ilEmnI", willNavigate: true),
@@ -33,11 +35,26 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
         WebAction(functionToCall: "A", parameter: "https://www.google.se"),
     ]
     
+    let actions3 = [
+        WebAction(functionToCall: "A", parameter: "https://www.jlt.se")
+    ]
+    
+    let actions4 = [
+        WebAction(functionToCall: "A", parameter: "https://www.google.se")
+    ]
+    
     if key == "2" {
         webViewController?.addActions(actions2)
-        return buttons1
-    } else {
-        webViewController?.addActions(actions1)
         return buttons2
+    }else if key == "1" {
+        webViewController?.addActions(actions1)
+        return buttons1
+    }else if key == "3" {
+        webViewController?.addActions(actions3)
+        return buttons1
+    }else{
+        webViewController?.addActions(actions4)
+        return buttons2
+        
     }
 }

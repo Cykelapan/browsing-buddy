@@ -7,33 +7,65 @@
 
 import SwiftUI
 
-struct Usersettings {
-    static let textSize = 36
-    static let myColor: Color = Color.blue
-}
-
-struct DynamicButtonView: View {
+struct ActionButtonView: View {
     let buttons: [ButtonData]
-    let onButtonTap: (String) -> Void // Parent Måste äga funktionen åsna!!!!
+    let onButtonTap: (String) -> Void
+    let color: Color
+    let fontSize: Int
 
     var body: some View {
-        VStack(spacing: 10) {
-            ForEach(buttons, id: \.key) { buttonData in Button(action: {
+        VStack(spacing: 5) {
+            ForEach(buttons, id: \.key) { buttonData in
+                CustomButton(text: buttonData.text, color: color, fontSize: fontSize) {
                     onButtonTap(buttonData.key)
-                }) {
-                    Text(buttonData.text)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Usersettings.myColor)
-                        .font(.system(size: CGFloat(Usersettings.textSize)))
-                        .minimumScaleFactor(0.5)
-                        .lineLimit(1)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                 }
+                .frame(maxHeight: .infinity)
             }
         }
         .padding()
+        .frame(maxHeight: .infinity)
+    }
+}
+
+struct FavoriteButtonView: View {
+    let buttons: [ButtonData]
+    let onButtonTap: (String) -> Void
+    let color: Color
+    let fontSize: Int
+
+    var body: some View {
+        VStack(spacing: 5) {
+            ForEach(buttons, id: \.key) { buttonData in
+                CustomButton(text: buttonData.text, color: color, fontSize: fontSize) {
+                    onButtonTap(buttonData.key)
+                }
+                .frame(maxHeight: .infinity)
+            }
+        }
+        .padding()
+        .frame(maxHeight: .infinity)
+    }
+}
+
+struct CustomButton: View {
+    let text: String
+    let color: Color
+    let fontSize: Int
+    let action: () -> Void
+    
+
+    var body: some View {
+        Button(action: action) {
+            Text(text)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(color)
+                .font(.system(size: CGFloat(fontSize)))
+                .minimumScaleFactor(0.2)
+                .lineLimit(1)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+        }
     }
 }
 
