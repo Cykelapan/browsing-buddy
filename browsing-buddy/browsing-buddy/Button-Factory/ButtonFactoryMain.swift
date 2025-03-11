@@ -7,54 +7,33 @@
 
 import SwiftUI
 
-struct ButtonData {
-    let text: String
-    let key: String
+struct Usersettings {
+    static let textSize = 36
+    static let myColor: Color = Color.blue
 }
 
 struct DynamicButtonView: View {
-    
-    var webVieController: WebViewController!
-    
-    @State private var buttons: [ButtonData] = [
-        ButtonData(text: "Button 1", key: "btn1"),
-        ButtonData(text: "Button 2", key: "btn2")
-    ]
+    let buttons: [ButtonData]
+    let onButtonTap: (String) -> Void // Parent Måste äga funktionen åsna!!!!
 
     var body: some View {
         VStack(spacing: 10) {
-            ForEach(Array(buttons.enumerated()), id: \.element.key) { index, buttonData in
-                createDynamicButton(text: buttonData.text, index: index)
+            ForEach(buttons, id: \.key) { buttonData in Button(action: {
+                    onButtonTap(buttonData.key)
+                }) {
+                    Text(buttonData.text)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Usersettings.myColor)
+                        .font(.system(size: CGFloat(Usersettings.textSize)))
+                        .minimumScaleFactor(0.5)
+                        .lineLimit(1)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
             }
         }
         .padding()
-    }
-    
-    struct Usersettings {
-        static let textSize = 36;
-        static let myColor: Color = Color.blue
-    }
-
-    func createDynamicButton(text: String, index: Int) -> some View {
-        
-        Button(action: buttonAction) { // replace later for preengine
-            Text(text)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Usersettings.myColor)
-                .font(.system(size: CGFloat(Usersettings.textSize)))
-                .minimumScaleFactor(0.5)
-                .lineLimit(1)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-        }
-    }
-
-    func buttonAction() {
-        buttons = [
-            ButtonData(text: "Button 3", key: "btn1"),
-            ButtonData(text: "Button 4", key: "btn2")
-        ]
     }
 }
 

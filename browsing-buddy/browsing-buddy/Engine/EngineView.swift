@@ -10,7 +10,7 @@ import UIKit
 
 struct EngineView: UIViewControllerRepresentable {
     @Binding var webViewController: WebViewController?
-    
+
     func makeUIViewController(context: Context) -> WebViewController {
         let controller = WebViewController()
         DispatchQueue.main.async {
@@ -18,7 +18,7 @@ struct EngineView: UIViewControllerRepresentable {
         }
         return controller
     }
-    
+
     func updateUIViewController(_ uiViewController: WebViewController, context: Context) {
         self.webViewController = uiViewController
     }
