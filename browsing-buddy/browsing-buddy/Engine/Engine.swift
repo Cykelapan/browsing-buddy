@@ -37,9 +37,21 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         config.userContentController = contentController
         config.defaultWebpagePreferences.allowsContentJavaScript = true
         
-        webView = WKWebView(frame: self.view.bounds, configuration: config)
-        webView.navigationDelegate = self
+        //webView = WKWebView(frame: self.view.bounds, configuration: config)
+        webView = WKWebView(frame: .zero, configuration: config)
+        webView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(webView)
+
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: view.topAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+
+        //the changes
+        webView.navigationDelegate = self
+        //view.addSubview(webView)
     }
     
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
