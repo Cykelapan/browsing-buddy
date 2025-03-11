@@ -1,0 +1,36 @@
+
+{
+    "key": "LALALALALA",
+    "website": "https://www.jonkoping.se",
+    "state": "Landingpage",
+    
+    "webCommands": [
+        {
+            "commandType": "CLICK",
+            "jsElementKey": "ssss",
+            "jsInputParameters": [],
+            "parameterAction": 1
+        },
+        {
+            "commandType": "CLICK",
+            "jsElementKey": "sad",
+            "jsInputParameters": [],
+            "parameterAction": 2
+        }
+    ],
+    
+    "uiButtons": [
+        {
+            "buttonText": "Login",
+            "nextStateKey": "log1"
+        },
+        {
+            "buttonText": "Kontakt",
+            "nextStateKey": "kon1"
+        },
+        {
+            "buttonText": "Kalender",
+            "nextStateKey": "k1"
+        }
+    ]
+}
