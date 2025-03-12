@@ -94,3 +94,24 @@ struct CustomButtonWithClosure: View {
     }
 }
 
+struct NavigationButton: View {
+    let text: String
+    let color: Color
+    let fontSize: Int
+    let route: AppRoute
+    @Binding var path: NavigationPath // Binding to the navigation path
+    
+    var body: some View {
+        Button(action: {
+            path.append(route) // Update path to navigate to the route
+        }) {
+            Text(text)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(color)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+                .font(.system(size: CGFloat(fontSize)))
+        }
+    }
+}

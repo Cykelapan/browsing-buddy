@@ -14,7 +14,9 @@ struct browsing_buddyApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            /*ContentView()
+                .environmentObject(userSession)*/
+            ParentView()
                 .environmentObject(userSession)
         }
     }
