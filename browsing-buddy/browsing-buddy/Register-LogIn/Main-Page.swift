@@ -76,20 +76,17 @@ struct LoginView: View {
                 .fontWeight(.bold)
                 .padding(.top, 40)
 
-            // Username field
             TextField("Ange användarnamn", text: $username)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
-            // Password field (secure)
             SecureField("Ange lösenord", text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
-            // Login button that calls the register function and navigates
             Button(action: {
-                register()  // Call the register function
-                path.append(AppRoute.contentView)  // Navigate to ContentView after register
+                register()
+                path.append(AppRoute.contentView)
             }) {
                 Text("Logga in")
                     .frame(maxWidth: .infinity)
@@ -108,7 +105,6 @@ struct LoginView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    // Register function (temporary for testing)
     private func register() {
         let newUser = UserProfile(
             username: username,
