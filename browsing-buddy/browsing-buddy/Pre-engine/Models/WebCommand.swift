@@ -9,9 +9,16 @@ import Foundation
 
 
 enum CommandType : String, Codable{
-    case CLICK = "CLICK"
-    case INSERT = "INSERT"
-    case GET_INFORMATION = "GET_INFORMATION"
+    case CLICK = "click"
+    case INSERT = "insert"
+    case USER_INSERT = "userInsert"
+    case GET_INFORMATION = "getinformation"
+}
+
+enum ElementType : String, Codable{
+    case CLASS_PATH = "classPath"
+    case ELEMENT_ID = "elementID"
+    case X_PATH = "xPath"
 }
 
 enum ParameterAction : Int, Codable{
@@ -23,6 +30,7 @@ enum ParameterAction : Int, Codable{
     case GET_LASTNAME
     case GET_FULLNAME
     
+    //Koppla till användarens data
     func getValue() -> String? {
         switch self {
         case .NOTHING:
@@ -44,18 +52,24 @@ enum ParameterAction : Int, Codable{
 }
 
 //Parameter is user specific and need to be collected?
+// 1. Statiska parametrar i db om det finns, 2. från användarens data, 3. Custom input when you are there
 //Or open a small input box in a view to get that data
+//Hur många in parametrar behövs egentligen? och hur ska det användas i engine?
+
+//Lägg till elementType, elementKey enbart en string
 struct WebCommand : Codable{
     let commandType : CommandType
-    let jsElementKey : String
+    let jsElementKeys : JSElementKeys
     var jsInputParameters : [String]
     let parameterAction : ParameterAction
+    let willNavigate : Bool
     
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.commandType = try container.decode(CommandType.self, forKey: .commandType)
-        self.jsElementKey = try container.decode(String.self, forKey: .jsElementKey)
-        self.jsInputParameters = try container.decode([String].self, forKey: .jsInputParameters) 
+        self.jsElementKeys = try container.decode(JSElementKeys.self, forKey: .jsElementKeys)
+        self.jsInputParameters = try container.decode([String].self, forKey: .jsInputParameters)
+        self.willNavigate = try container.decode(Bool.self, forKey: .willNavigate)
         self.parameterAction = try container.decode(ParameterAction.self, forKey: .parameterAction)
         guard let parameterFromUser = self.parameterAction.getValue() else {
             return
@@ -63,4 +77,10 @@ struct WebCommand : Codable{
         self.jsInputParameters.append(parameterFromUser)
     }
 }
-
+struct JSElementKeys: Codable {
+    let classPath : String?
+    let elementId : String?
+    let elementTag : String?
+    let value : String?
+    let xPath : String?
+}

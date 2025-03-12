@@ -46,7 +46,7 @@ class GetMockData {
         }
         do {
             let data = try  Data(contentsOf: fileUrl)
-            let feed = try JSONDecoder().decode(StateData.self, from: data)
+            let feed = try JSONDecoder().decode(WebState.self, from: data)
             print(feed)
         } catch {
             print("Error: ", error.localizedDescription, error)
