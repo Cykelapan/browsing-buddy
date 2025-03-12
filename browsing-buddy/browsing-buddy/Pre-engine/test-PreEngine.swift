@@ -33,6 +33,8 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
     ]
     let actions2 = [
         WebAction(functionToCall: "A", parameter: "https://www.google.se"),
+        WebAction(functionToCall: "SHOW_MESSAGE", parameter: "Du är på Google vid tryck navigeras du till Jönköpings Länstrafik"),
+        WebAction(functionToCall: "A", parameter: "https://www.jlt.se")
     ]
     
     let actions3 = [

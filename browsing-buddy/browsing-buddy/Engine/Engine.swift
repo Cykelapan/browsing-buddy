@@ -27,6 +27,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     var isProcessing = false
     var isNavigating = false
     
+    var onRequestUserInput: ((String, @escaping (String) -> Void) -> Void)?
+    var onRequestShowMessage: ((String, @escaping () -> Void) -> Void)?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -49,10 +52,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             webView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
 
-        //the changes
         webView.navigationDelegate = self
-        //view.addSubview(webView)
     }
+    
     
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "callbackHandler" {
@@ -78,6 +80,21 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         let action = actionQueue.removeFirst()
         
         switch action.functionToCall {
+        case "INPUT_REQUEST":
+            // Fungerar inte än
+            onRequestUserInput?("Please enter search term") { userInput in
+                self.fillInputFieldName(usingName: "q", value: userInput)
+                self.processNextAction()
+            }
+
+        case "SHOW_MESSAGE":
+            onRequestShowMessage?(action.parameter) {
+                self.processNextAction()
+            }
+
+        case "CLICK_BUTTON":
+            clickElement(withId: action.parameter)
+            processNextAction()
         case "A":
             print("Entered A")
             navigateToPage(urlString: action.parameter)
