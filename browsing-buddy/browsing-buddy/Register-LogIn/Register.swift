@@ -31,7 +31,7 @@ struct UserProfile: Codable {
         favoriteColor: Color = Color.red,
         favoriteButtons: [ButtonData] =
         [
-            ButtonData(text: "JLT", key: "3"),
+            ButtonData(text: "Polisen", key: "3"),
             ButtonData(text: "Google", key: "4")
         ]
     ) {
