@@ -62,6 +62,7 @@ struct Registrera: View {
     }
 }
 
+
 struct LoginView: View {
     @EnvironmentObject var userSession: UserSession
     @Binding var path: NavigationPath
@@ -85,7 +86,7 @@ struct LoginView: View {
                 .padding(.horizontal)
 
             Button(action: {
-                register()
+                login()
                 path.append(AppRoute.contentView)
             }) {
                 Text("Logga in")
@@ -105,12 +106,13 @@ struct LoginView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func register() {
+    private func login() {
         let newUser = UserProfile(
             username: username,
-            email: "email@example.com", // Just for testing
+            email: "email@example.com", // bara test
             password: password
         )
+        print("Logging")
         
         userSession.currentUser = newUser
         print("User registered: \(newUser)")
