@@ -340,7 +340,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             if (element) {
                 console.log('Element found using XPath, clicking...');
                 element.click();
-                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath); notify when done
+                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath);
             } else {
                 console.log('Element not found, retrying...');
                 setTimeout(function() { waitForElement(xpath); }, 500); // Retry until found
