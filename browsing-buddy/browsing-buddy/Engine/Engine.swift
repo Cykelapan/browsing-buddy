@@ -95,6 +95,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "CLICK_BUTTON":
             clickElement(withId: action.parameter)
             processNextAction()
+            
         case "A":
             print("Entered A")
             navigateToPage(urlString: action.parameter)
@@ -124,10 +125,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "G":
             print("Entered G")
-            //clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate )
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
+            clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate )
+            /*DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate)
-             }
+             }*/
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -339,7 +340,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             if (element) {
                 console.log('Element found using XPath, clicking...');
                 element.click();
-                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath); // ✅ Notify Swift when done
+                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath); notify when done
             } else {
                 console.log('Element not found, retrying...');
                 setTimeout(function() { waitForElement(xpath); }, 500); // Retry until found
