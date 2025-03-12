@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Foundation
+import AVFoundation
 
 //För min älskade switch
 enum PopupType: Identifiable {
@@ -23,23 +24,15 @@ enum PopupType: Identifiable {
     }
 }
 
-//användarinställningar
-struct UserSettings {
-    static let textSize = 36
-    static let myColor: Color = Color.blue
-    static let favoriteColor: Color = Color.red
-    static let favoriteButtons: [ButtonData] = [
-        ButtonData(text: "JLT", key: "3"),
-        ButtonData(text: "Google", key: "4")
-    ]
-}
 
 // denna struct kommer vara enorm...
 struct ContentView: View {
+    @EnvironmentObject var userSession: UserSession
     @State private var webViewController: WebViewController? = nil
     @State private var currentButtons: [ButtonData] = []
     
     @State private var activePopup: PopupType? = nil
+    private let speechManager = SpeechManager()
 
     var body: some View {
         GeometryReader { geometry in
@@ -49,18 +42,17 @@ struct ContentView: View {
 
                 HStack(spacing: 0) {
                     FavoriteButtonView(
-                        buttons: UserSettings.favoriteButtons,
+                        buttons: userSession.currentUser?.favoriteButtons ?? [],
                         onButtonTap: handleButtonTap,
-                        color: UserSettings.favoriteColor,
-                        fontSize: UserSettings.textSize
-                    )
+                        color: userSession.currentUser?.favoriteColor.toColor() ?? .red,
+                        fontSize: userSession.currentUser?.textSize ?? 36                    )
                     .frame(width: geometry.size.width * 0.4)
 
                     ActionButtonView(
                         buttons: currentButtons,
                         onButtonTap: handleButtonTap,
-                        color: UserSettings.myColor,
-                        fontSize: UserSettings.textSize
+                        color: userSession.currentUser?.mainColor.toColor() ?? .blue,
+                        fontSize: userSession.currentUser?.textSize ?? 36
                     )
                     .frame(width: geometry.size.width * 0.6)
                 }
@@ -83,6 +75,9 @@ struct ContentView: View {
                     }
                 }
             }
+            .onAppear(){
+                speechManager.listAvailableVoices()
+            }
                     .sheet(item: $activePopup) { popup in
                         // Lazer Denis i farten igen =)
                         switch popup {
@@ -102,23 +97,82 @@ struct ContentView: View {
                             .padding()
 
                         case .message(let text, let onDismiss):
-                            VStack {
-                                Text(text)
-                                    .font(.headline)
-                                    .padding()
-                                Button("OK") {
-                                    onDismiss()
-                                    activePopup = nil
-                                }
-                            }
-                            .padding()
+                            messagePopupView(text: text, onDismiss: {
+                                onDismiss()
+                                activePopup = nil
+                            })
                         }
                     }
                 }
             }
+    
+    private func messagePopupView(text: String, onDismiss: @escaping () -> Void) -> some View {
+           VStack {
+               Text("Information")
+                   .font(.title)
+                   .fontWeight(.bold)
+               Text(text)
+                   .font(.headline)
+                   .padding()
+
+               Spacer()
+
+               CustomButton(
+                   text: "Text till tal",
+                   color: Color.green,
+                   fontSize: 22,
+                   action: {
+                       print("Talar") // Debugga skiten!!!
+                       speechManager.speak(text) // Speak the message
+                   }
+               )
+
+               CustomButtonWithClosure(
+                   text: "OK",
+                   color: Color.blue,
+                   fontSize: 22,
+                   action: {
+                       speechManager.stopSpeaking() // Stop if speaking
+                       onDismiss()
+                       activePopup = nil
+                   },
+                   onClose: { activePopup = nil }
+               )
+           }
+           .padding()
+       }
+    
     // äger knappen
     private func handleButtonTap(key: String) {
         let newButtons = orchestrator(key: key, webViewController: webViewController)
         currentButtons = newButtons
+    }
+}
+
+
+//------------------------------ Flyttas senare eller inte =)
+
+class SpeechManager {
+    private let synthesizer = AVSpeechSynthesizer()
+
+    func speak(_ text: String) {
+        let tal = AVSpeechUtterance(string: text)
+        tal.voice = AVSpeechSynthesisVoice(language: "sv-SE") // kanske gör till in-parameter ifall man lägger in överättare senare
+        tal.rate = 0.5
+
+        //Debug
+        print("Using voice: \(tal.voice?.identifier ?? "Unknown")")
+        synthesizer.speak(tal)
+    }
+
+    func stopSpeaking() {
+        synthesizer.stopSpeaking(at: .immediate)
+    }
+
+    // Ta bort sen, endast för att kolla o det fanns röster / språk
+    func listAvailableVoices() {
+        for voice in AVSpeechSynthesisVoice.speechVoices() {
+            print("Voice Identifier: \(voice.identifier), Language: \(voice.language), Name: \(voice.name)")
+        }
     }
 }

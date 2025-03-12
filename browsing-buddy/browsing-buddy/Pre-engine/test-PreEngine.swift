@@ -5,11 +5,6 @@
 //  Created by Denis Ureke on 2025-03-11.
 //
 
-struct ButtonData {
-    let text: String
-    let key: String
-}
-
 func orchestrator(key: String, webViewController: WebViewController?) -> [ButtonData] {
     
     let buttons1 = [

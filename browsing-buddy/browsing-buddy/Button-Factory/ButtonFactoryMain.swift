@@ -69,3 +69,28 @@ struct CustomButton: View {
     }
 }
 
+struct CustomButtonWithClosure: View {
+    let text: String
+    let color: Color
+    let fontSize: Int
+    let action: () -> Void
+    let onClose: (() -> Void)?
+
+    var body: some View {
+        Button(action: {
+            action()
+            onClose?()
+        }) {
+            Text(text)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(color)
+                .font(.system(size: CGFloat(fontSize)))
+                .minimumScaleFactor(0.2)
+                .lineLimit(1)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+        }
+    }
+}
+
