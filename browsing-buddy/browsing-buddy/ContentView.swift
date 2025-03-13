@@ -37,7 +37,7 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                EngineView(webViewController: $webViewController)
+                EngineView(webViewController: $webViewController, userSession: userSession)
                     .frame(height: geometry.size.height * 0.8)
 
                 HStack(spacing: 0) {

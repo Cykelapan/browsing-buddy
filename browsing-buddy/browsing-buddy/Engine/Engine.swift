@@ -27,9 +27,18 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     var isProcessing = false
     var isNavigating = false
     var extractedText: String = ""
+    var userSession: UserSession
     
     var onRequestUserInput: ((String, @escaping (String) -> Void) -> Void)?
     var onRequestShowMessage: ((String, @escaping () -> Void) -> Void)?
+    
+    init(userSession: UserSession) {
+        self.userSession = userSession
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented") // psyko UIkit
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -143,6 +152,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
              }*/
         case "Extract_Message":
             extractTextByXPath(xpath: action.parameter)
+            
+        case "InsertElement":
+            fillElementByXPath(xpath: action.parameter, valueType: <#T##String#>)
+            
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -381,6 +394,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
+    //Klar
     private func extractTextByXPath(xpath: String) {
         let js = """
         function waitForElement(xpath) {
@@ -398,6 +412,49 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         """
         
         webView.evaluateJavaScript(js, completionHandler: nil)
+    }
+    
+    private func fillElementByXPath(xpath: String, valueType: String) {
+        var valueToInsert = ""
+
+        // Haha måste hitta andra sättän switches, men jag gillar dem haha
+        switch valueType.lowercased() {
+        case "email":
+            valueToInsert = userSession.currentUser?.email ?? ""
+        case "password":
+            valueToInsert = userSession.currentUser?.password ?? ""
+        case "username":
+            valueToInsert = userSession.currentUser?.username ?? ""
+        // Add more cases if needed
+        default:
+            print("Unknown valueType: \(valueType)")
+            self.processNextAction()
+            return
+        }
+
+        let js = """
+        function waitForElement(xpath, value) {
+            var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            if (element) {
+                console.log('Element found using XPath, filling value...');
+                element.focus();
+                element.value = value;
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with XPath: ' + xpath + ' and valueType: ' + value);
+            } else {
+                console.log('Element not found, retrying...');
+                setTimeout(function() { waitForElement(xpath, value); }, 500);
+            }
+        }
+        waitForElement('\(xpath)', '\(valueToInsert)');
+        """
+
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+            }
+            self.processNextAction()
+        }
     }
 
     
