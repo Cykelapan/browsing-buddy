@@ -5,6 +5,12 @@
 //  Created by Denis Ureke on 2025-03-11.
 //
 
+enum UserField: String{
+    case email
+    case password
+    //lägger till fler sedan
+}
+
 func orchestrator(key: String, webViewController: WebViewController?) -> [ButtonData] {
     
     let buttons1 = [
@@ -68,10 +74,19 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
     ]
     
     let actions4 = [
+         WebAction(functionToCall: "A", parameter: "https://www.google.se"),
+         WebAction(
+             functionToCall: "Insert_Element_Class",
+             parameter: "gLFyf", // Class name of textarea
+             extractFromUser: UserField.email.rawValue // skickar man in en string som inte finns i switch, är det det som fylls i
+         )
+        
+        ]
+    
+    let actions5 = [
         WebAction(functionToCall: "A", parameter: "https://www.jonkoping.se/fritid-kultur--natur/motesplatser-och-fritidsgardar/aktiviteter-for-seniorer/fysiska-traffpunkter-for-seniorer/seniortorget-huskvarna-f.d.-traffpunkt-hornan"),
         WebAction(functionToCall: "Extract_Message", parameter: "//*[@id=\"svid12_1a8263dd17545631d955d4\"]/div[2]/p"),
         WebAction(functionToCall: "SHOW_EXTRACTED_MESSAGE", parameter: "")
-        
         ]
 
     

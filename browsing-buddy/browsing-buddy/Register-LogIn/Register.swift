@@ -24,7 +24,7 @@ struct UserProfile: Codable {
     // Example initializer
     init(
         username: String = "",
-        email: String = "",
+        email: String = "min.email@gmail.com",
         password: String = "",
         textSize: Int = 36,
         mainColor: Color = Color.blue,
