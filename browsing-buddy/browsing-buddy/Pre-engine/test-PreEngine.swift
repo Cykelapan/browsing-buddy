@@ -59,7 +59,8 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
         ),
         WebAction(
             functionToCall: "SHOW_MESSAGE",
-            parameter: "Nu är det snart dags att signera med BankID mm.."
+            parameter: "Nu är det snart dags att signera med BankID mm..",
+            title: "BANKID"
         ),
 
 
