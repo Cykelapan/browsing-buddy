@@ -10,4 +10,5 @@ import Foundation
 struct UIButtonData : Codable {
     let buttonText : String
     let nextStateKey : String
+    
 }

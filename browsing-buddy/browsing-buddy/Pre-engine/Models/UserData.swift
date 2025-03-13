@@ -9,7 +9,9 @@ import Foundation
 
 
 struct UserData: Codable {
-    
+    let _id : String
+    let email : String
+    let passwordApp : String
 }
 
 struct PasswordManagerData: Codable {

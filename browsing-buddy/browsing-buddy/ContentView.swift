@@ -42,17 +42,17 @@ struct ContentView: View {
 
                 HStack(spacing: 0) {
                     FavoriteButtonView(
-                        buttons: userSession.currentUser?.favoriteButtons ?? [],
+                        buttons: userSession.currentUser.favoriteButtons,
                         onButtonTap: handleButtonTap,
-                        color: userSession.currentUser?.favoriteColor.toColor() ?? .red,
-                        fontSize: userSession.currentUser?.textSize ?? 36                    )
+                        color: userSession.currentUser.favoriteColor.toColor(),
+                        fontSize: userSession.currentUser.textSize                   )
                     .frame(width: geometry.size.width * 0.4)
 
                     ActionButtonView(
                         buttons: currentButtons,
                         onButtonTap: handleButtonTap,
-                        color: userSession.currentUser?.mainColor.toColor() ?? .blue,
-                        fontSize: userSession.currentUser?.textSize ?? 36
+                        color: userSession.currentUser.mainColor.toColor(),
+                        fontSize: userSession.currentUser.textSize
                     )
                     .frame(width: geometry.size.width * 0.6)
                 }

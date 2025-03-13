@@ -10,7 +10,7 @@ import SwiftUI
 @main
 struct browsing_buddyApp: App {
     //användaren global
-    @StateObject var userSession = UserSession()
+    @StateObject var userSession = UserSession(currentUser: UserProfile(userId: "", email: "", password: ""))
     
     var body: some Scene {
         WindowGroup {

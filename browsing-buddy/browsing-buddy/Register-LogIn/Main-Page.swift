@@ -48,74 +48,12 @@ struct ParentView: View {
     }
 }
 
-struct Registrera: View {
-    
-    var body: some View {
-        
-        VStack {
-            Text("Registrera dig")
-                .font(.title)
-                .padding()
-        }
-        .navigationTitle("Registrering")
-        .navigationBarTitleDisplayMode(.inline)
-    }
+#Preview {
+    ParentView()
 }
 
 
-struct LoginView: View {
-    @EnvironmentObject var userSession: UserSession
-    @Binding var path: NavigationPath
-    
-    @State private var username: String = ""
-    @State private var password: String = ""
 
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Logga in")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.top, 40)
 
-            TextField("Ange användarnamn", text: $username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
 
-            SecureField("Ange lösenord", text: $password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.horizontal)
-
-            Button(action: {
-                login()
-                path.append(AppRoute.contentView)
-            }) {
-                Text("Logga in")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .font(.title3)
-            }
-            .padding(.horizontal)
-            .padding(.top, 20)
-
-            Spacer()
-        }
-        .navigationTitle("Logga in")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func login() {
-        let newUser = UserProfile(
-            username: username,
-            email: "email@example.com", // bara test
-            password: password
-        )
-        print("Logging")
-        
-        userSession.currentUser = newUser
-        print("User registered: \(newUser)")
-    }
-}
 

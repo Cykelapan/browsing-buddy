@@ -7,18 +7,24 @@
 
 import Foundation
 
-
-enum CommandType : String, Codable{
-    case CLICK = "click"
-    case INSERT = "insert"
-    case USER_INSERT = "userInsert"
-    case GET_INFORMATION = "getinformation"
+enum ElementKeyToUse : String, Codable{
+    case ELEMENT_ID = "elementID" // document.getByid()
+    case X_PATH = "xPath" //document.evaluate() -> //
+    case CLASS_NAME = "className" // document.getElementsByClassName(className);
+    case CSS_SELECTOR = "cssSelector" // document.querySelector()
 }
 
-enum ElementType : String, Codable{
-    case CLASS_PATH = "classPath"
-    case ELEMENT_ID = "elementID"
-    case X_PATH = "xPath"
+enum FunctionToCall : String, Codable {
+    case INPUT_REQUEST = "INPUT_MESSAGE"
+    case SHOW_MESSAGE = "SHOW_MESSAGE"
+    case CLICK_BUTTON = "CLICK_BUTTON"
+    case A = "A"
+    case B = "B"
+    case C = "C"
+    case D = "D"
+    case E = "E"
+    case F = "F"
+    case G = "G"
 }
 
 enum ParameterAction : Int, Codable{
@@ -31,10 +37,10 @@ enum ParameterAction : Int, Codable{
     case GET_FULLNAME
     
     //Koppla till användarens data
-    func getValue() -> String? {
+    func getValue() -> String {
         switch self {
         case .NOTHING:
-            return nil
+            return ""
         case .GET_USERNAME:
             return "username"
         case .GET_EMAIL:
@@ -58,29 +64,28 @@ enum ParameterAction : Int, Codable{
 
 //Lägg till elementType, elementKey enbart en string
 struct WebCommand : Codable{
-    let commandType : CommandType
+    let functionToCall : FunctionToCall
     let jsElementKeys : JSElementKeys
-    var jsInputParameters : [String]
+    let jsElementKey : String
+    var jsInputParameter : String?
     let parameterAction : ParameterAction
     let willNavigate : Bool
     
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.commandType = try container.decode(CommandType.self, forKey: .commandType)
+        self.functionToCall = try container.decode(FunctionToCall.self, forKey: .functionToCall)
         self.jsElementKeys = try container.decode(JSElementKeys.self, forKey: .jsElementKeys)
-        self.jsInputParameters = try container.decode([String].self, forKey: .jsInputParameters)
+        self.jsInputParameter = try container.decode(String?.self, forKey: .jsInputParameter)
         self.willNavigate = try container.decode(Bool.self, forKey: .willNavigate)
         self.parameterAction = try container.decode(ParameterAction.self, forKey: .parameterAction)
-        guard let parameterFromUser = self.parameterAction.getValue() else {
-            return
-        }
-        self.jsInputParameters.append(parameterFromUser)
+        self.jsElementKey = ""
+        //TODO: fixa så det väljer nyckel baserat på det som ska användas
     }
 }
 struct JSElementKeys: Codable {
-    let classPath : String?
+    let className : String?
     let elementId : String?
     let elementTag : String?
-    let value : String?
+    let cssSelector : String?
     let xPath : String?
 }

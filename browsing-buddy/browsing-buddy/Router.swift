@@ -16,7 +16,7 @@ enum AppRoute: Hashable {
     func view(path: Binding<NavigationPath>) -> some View {
         switch self {
         case .registrera:
-            Registrera()
+            RegisterView(path: path)
         case .contentView:
             ContentView()
         case .login:

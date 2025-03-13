@@ -25,10 +25,7 @@ struct StateKey: Codable {
     let webStateKey : String
 }
 
-struct AppUser : Codable{
-    let email : String
-    let passwordApp: String
-}
+
 
 struct PasswordManager : Codable {
     let website : String
@@ -115,22 +112,7 @@ class AzureFunctions {
          return await objectToPasswordManager(inUrl: url, method: "POST", input: input)
         
     }
-    public func userLogin(input: AppUser) async{
-        guard let url = URL(string: baseURI + "login") else { return }
-        
-        do {
-            var request = setWebsiteHeader(inUrl: url, httpMethod: "POST")
-            request.httpBody = try encodeToJSON(input)
-            
-            let (data, _ ) = try await URLSession.shared.data(for: request)
-            let convertdata = try JSONDecoder().decode(AppUser.self, from: data)
-            print(convertdata)
-            
-        } catch {
-            print(error)
-        }
-        
-    }
+    
     public func getAllWebstate() async{
         guard let url = URL(string: baseURI + "getwebstate") else { return }
         
@@ -139,12 +121,12 @@ class AzureFunctions {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpMethod = "GET"
            
-            let (data, _ ) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await URLSession.shared.data(for: request)
             
-            let ss = try JSONSerialization.jsonObject(with: data)
-            print(ss)
-            //print(data)
-            //print(response)
+            //let ss = try JSONSerialization.data(withJSONObject: data)
+            //print(ss)
+            print(data)
+            print(response)
             
         } catch {
             print(error)

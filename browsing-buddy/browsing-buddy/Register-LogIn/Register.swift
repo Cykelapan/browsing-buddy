@@ -13,7 +13,7 @@ struct ButtonData: Codable {
 }
 
 struct UserProfile: Codable {
-    var username: String
+    var userId: String
     var email: String
     var password: String
     var textSize: Int
@@ -23,9 +23,9 @@ struct UserProfile: Codable {
 
     // Example initializer
     init(
-        username: String = "",
-        email: String = "",
-        password: String = "",
+        userId: String,
+        email: String,
+        password: String,
         textSize: Int = 36,
         mainColor: Color = Color.blue,
         favoriteColor: Color = Color.red,
@@ -35,7 +35,7 @@ struct UserProfile: Codable {
             ButtonData(text: "Google", key: "4")
         ]
     ) {
-        self.username = username
+        self.userId = userId
         self.email = email
         self.password = password
         self.textSize = textSize
@@ -68,7 +68,10 @@ struct ColorData: Codable {
 }
 
 class UserSession: ObservableObject {
-    @Published var currentUser: UserProfile? = UserProfile()
+    @Published var currentUser: UserProfile
+    init(currentUser: UserProfile) {
+        self.currentUser = currentUser
+    }
 }
 
 
