@@ -12,11 +12,15 @@ struct WebAction {
     let functionToCall: String
     let parameter: String
     let willNavigate: Bool // måste vara med ifall navigation sker vid en action
+    let extractFromUser: String?
+    let title: String?
 
-    init(functionToCall: String, parameter: String, willNavigate: Bool = false) {
+    init(functionToCall: String, parameter: String, willNavigate: Bool = false, extractFromUser: String? = nil, title: String? = nil) {
         self.functionToCall = functionToCall
         self.parameter = parameter
         self.willNavigate = willNavigate
+        self.extractFromUser = extractFromUser
+        self.title = title
     }
 }
 
@@ -26,9 +30,19 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     var actionQueue: [WebAction] = []
     var isProcessing = false
     var isNavigating = false
+    var extractedText: String = ""
+    var userSession: UserSession
     
     var onRequestUserInput: ((String, @escaping (String) -> Void) -> Void)?
-    var onRequestShowMessage: ((String, @escaping () -> Void) -> Void)?
+    var onRequestShowMessage: ((String, String, @escaping () -> Void) -> Void)?
+    
+    init(userSession: UserSession) {
+        self.userSession = userSession
+        super.init(nibName: nil, bundle: nil)
+    }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented") // psyko UIkit
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,6 +73,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "callbackHandler" {
             print("JavaScript says: \(message.body)")
+            
+            //Ta emot extracted
+            if let messageBody = message.body as? String {
+                if messageBody.starts(with: "ExtractedText:") {
+                    let extracted = messageBody.replacingOccurrences(of: "ExtractedText:", with: "")
+                    self.extractedText = extracted
+                    print("Extracted text sparad: \(self.extractedText)")
+                }
+            }
             if !isNavigating {
                 processNextAction()
             }
@@ -80,55 +103,48 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         let action = actionQueue.removeFirst()
         
         switch action.functionToCall {
+            
         case "INPUT_REQUEST":
             // Fungerar inte än
             onRequestUserInput?("Please enter search term") { userInput in
-                self.fillInputFieldName(usingName: "q", value: userInput)
                 self.processNextAction()
             }
 
         case "SHOW_MESSAGE":
-            onRequestShowMessage?(action.parameter) {
+            onRequestShowMessage?(action.title ?? "Information", action.parameter) {
                 self.processNextAction()
             }
-
-        case "CLICK_BUTTON":
-            clickElement(withId: action.parameter)
-            processNextAction()
+        
+        case "SHOW_EXTRACTED_MESSAGE":
+            onRequestShowMessage?(action.title ?? "", self.extractedText){
+                self.extractedText = ""
+                self.processNextAction()
+            }
             
         case "A":
             print("Entered A")
             navigateToPage(urlString: action.parameter)
-        case "B":
-            print("Entered B")
-            clickElement(withId: action.parameter)
-        case "C":
-            print("Entered C")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                self.fillInputField(withId: action.parameter, value: "Test Input")
-            }
         case "D":
             print("Entered D")
             clickElementClass(withClass: action.parameter, willNavigate: action.willNavigate)
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
              self.clickElementClass(withClass: action.parameter)
              }*/
-            
-        case "E":
-            print("Entered E")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { //bara test
-                self.fillInputFieldName(usingName: action.parameter, value: "Test")
-            }
-        case "F":
-            print("Entered F")
-            clickElementByAriaLabel(label: action.parameter)
-            
         case "G":
             print("Entered G")
             clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate )
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate)
              }*/
+        case "Extract_Message":
+            extractTextByXPath(xpath: action.parameter)
+            
+        case "Insert_Element":
+            fillElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate, valueType: action.extractFromUser ?? "")
+            
+        case "Insert_Element_Class":
+            fillElementByClass(className: action.parameter, willNavigate: action.willNavigate, valueType: action.extractFromUser ?? "")
+            
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -167,29 +183,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             } else {
                 print("JavaScript executed successfully.")
             }
-        }
-    }
-    
-    private func clickElement(withId id: String) {
-        let js = """
-        function waitForElement(id) {
-            var element = document.getElementById(id);
-            if (element) {
-                element.click();
-                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with id: ' + id);
-            } else {
-                setTimeout(function() { waitForElement(id); }, 500); // Keep retrying until found
-            }
-        }
-        waitForElement('\(id)');
-        """
-        
-        webView.evaluateJavaScript(js) { _, error in
-            if let error = error {
-                print("JavaScript injection error: \(error.localizedDescription)")
-                self.processNextAction() // Hantera om det inte fungerar
-            }
-            // bättre och logga i callbackhandler
         }
     }
     
@@ -257,121 +250,109 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
-    private func clickElementClass2(withClass className: String) {
+    //Klar
+    private func extractTextByXPath(xpath: String) {
         let js = """
-        function waitForElement(className, callback) {
-            var elements = document.getElementsByClassName(className);
-            if (elements.length > 0) {
-                console.log("Element found, clicking...");
-                elements[0].click();
+        function waitForElement(xpath) {
+            var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            if (element) {
+                console.log('Element found using XPath, extracting text...');
+                var text = element.innerText || element.textContent || '';
+                window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:' + text);
             } else {
-                console.log("Element not found, retrying...");
-                setTimeout(function() { waitForElement(className); }, 500);
+                console.log('Element not found, retrying...');
+                setTimeout(function() { waitForElement(xpath); }, 500);
             }
         }
-        waitForElement('\(className)');
+        waitForElement('\(xpath)');
         """
         
-        webView.evaluateJavaScript(js) { _, error in
-            if let error = error {
-                print("JavaScript Error: \(error.localizedDescription)")
-            } else {
-                print("JavaScript executed successfully, element clicked.")
-            }
-            self.processNextAction()
-        }
+        webView.evaluateJavaScript(js, completionHandler: nil)
     }
     
-    
-    private func fillInputField(withId id: String, value: String) {
+    //klar men svår att targetta med
+    private func fillElementByXPath(xpath: String, willNavigate navigate: Bool, valueType: String) {
+        let valueToInsert = getValueForType(valueType: valueType)
+
         let js = """
-        function waitForInput(id, value, callback) {
-            var element = document.getElementById(id);
+        function waitForElement(xpath, value) {
+            var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             if (element) {
-                element.value = value;
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-                callback();
-            } else {
-                setTimeout(function() { waitForInput(id, value, callback); }, 500);
-            }
-        }
-        waitForInput('\(id)', '\(value)', function() {});
-        """
-        
-        webView.evaluateJavaScript(js) { _, error in
-            if let error = error {
-                print("JavaScript Error: \(error.localizedDescription)")
-            } else {
-                print("JavaScript executed successfully, input field filled.")
-            }
-            self.processNextAction()
-        }
-    }
-    
-    private func fillInputFieldName(usingName name: String, value: String) {
-        let js = """
-        function waitForInput(name, value, callback) {
-            var element = document.querySelector('input[name="' + name + '"]');
-            if (element) {
+                console.log('Element found using XPath, filling value...');
                 element.focus();
                 element.value = value;
                 element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-                
-                // Simulate a real user typing by dispatching key events
-                var event = new Event('keydown', { bubbles: true, cancelable: true });
-                event.key = value.charAt(value.length - 1);
-                element.dispatchEvent(event);
-                
-                element.blur();
-                callback();
+                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with XPath: ' + xpath + ' and valueType: ' + value);
             } else {
-                setTimeout(function() { waitForInput(name, value, callback); }, 500);
+                console.log('Element not found, retrying...');
+                setTimeout(function() { waitForElement(xpath, value); }, 500);
             }
         }
-        waitForInput('\(name)', '\(value)', function() {});
+        waitForElement('\(xpath)', '\(valueToInsert)');
         """
-        
+
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
-                print("JavaScript Error: \(error.localizedDescription)")
-            } else {
-                print("JavaScript executed successfully, input should be filled.")
+                print("JavaScript injection error: \(error.localizedDescription)")
             }
             self.processNextAction()
         }
     }
     
-    private func clickElementByAriaLabel(label: String) {
+    //klar Fungerar bättre med class om det e textfields
+    private func fillElementByClass(className: String, willNavigate navigate: Bool, valueType: String) {
+        let valueToInsert = getValueForType(valueType: valueType)
+
         let js = """
-        function waitForElement(label, callback) {
-            var element = document.querySelector('[aria-label="' + label + '"]');
-            if (element) {
-                element.click();
-                callback();
+        function waitForElementByClass(className, value) {
+            var elements = document.getElementsByClassName(className);
+            if (elements.length > 0) {
+                var element = elements[0];
+                console.log('Element found using class, filling value...');
+                element.focus();
+                element.value = value;
+
+                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
+                    var event = new Event(eventType, { bubbles: true });
+                    element.dispatchEvent(event);
+                });
+
+                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with class: ' + className + ' and valueType: ' + value);
             } else {
-                setTimeout(function() { waitForElement(label, callback); }, 500);
+                console.log('Element not found by class, retrying...');
+                setTimeout(function() { waitForElementByClass(className, value); }, 500);
             }
         }
-        waitForElement('\(label)', function() {});
+        waitForElementByClass('\(className)', '\(valueToInsert)');
         """
-        
+
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
-                print("JavaScript Error: \(error.localizedDescription)")
-            } else {
-                print("JavaScript executed successfully, button clicked.")
+                print("JavaScript injection error: \(error.localizedDescription)")
             }
             self.processNextAction()
         }
     }
+    
+    private func getValueForType(valueType: String) -> String {
+        switch valueType.lowercased() {
+        case "email":
+            return userSession.currentUser?.email ?? ""
+        case "password":
+            return userSession.currentUser?.password ?? ""
+        //Får lägga till fler
+        default:
+            print("Unknown valueType: \(valueType)")
+            return valueType
+        }
+    }
+
     
     //klar
     private func clickElementByXPath(xpath: String, willNavigate navigate: Bool) {
         isNavigating = navigate
         
-        let js = """
+       let js = """
         function waitForElement(xpath) {
             var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
             var element = result.singleNodeValue;
@@ -389,8 +370,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
 
                     var overlay = document.createElement("div");
                     overlay.style.position = "absolute";
-                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px"; // Center 100px circle
-                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px"; // Center 100px circle
+                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px";
+                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px";
                     overlay.style.width = "100px";
                     overlay.style.height = "100px";
                     overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
@@ -417,8 +398,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
         waitForElement('\(xpath)');
         """
-
-
         
         /*let js = """
         function waitForElement(xpath) {

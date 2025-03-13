@@ -12,7 +12,7 @@ import AVFoundation
 //För min älskade switch
 enum PopupType: Identifiable {
     case input(prompt: String, onSubmit: (String) -> Void)
-    case message(text: String, onDismiss: () -> Void)
+    case message(title: String, text: String, onDismiss: () -> Void)
 
     var id: String {
         switch self {
@@ -37,7 +37,7 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                EngineView(webViewController: $webViewController)
+                EngineView(webViewController: $webViewController, userSession: userSession)
                     .frame(height: geometry.size.height * 0.8)
 
                 HStack(spacing: 0) {
@@ -69,9 +69,8 @@ struct ContentView: View {
                     controller.onRequestUserInput = { prompt, completion in
                         activePopup = .input(prompt: prompt, onSubmit: completion)
                     }
-
-                    controller.onRequestShowMessage = { text, completion in
-                        activePopup = .message(text: text, onDismiss: completion)
+                    controller.onRequestShowMessage = { title, text, completion in
+                        activePopup = .message(title: title, text: text, onDismiss: completion)
                     }
                 }
             }
@@ -95,9 +94,8 @@ struct ContentView: View {
                                 }
                             }
                             .padding()
-
-                        case .message(let text, let onDismiss):
-                            messagePopupView(text: text, onDismiss: {
+                        case .message(let title, let text, let onDismiss):
+                            messagePopupView(title: title, text: text, onDismiss: {
                                 onDismiss()
                                 activePopup = nil
                             })
@@ -106,9 +104,9 @@ struct ContentView: View {
                 }
             }
     
-    private func messagePopupView(text: String, onDismiss: @escaping () -> Void) -> some View {
+    private func messagePopupView(title: String, text: String, onDismiss: @escaping () -> Void) -> some View {
            VStack {
-               Text("Information")
+               Text(title)
                    .font(.title)
                    .fontWeight(.bold)
                Text(text)

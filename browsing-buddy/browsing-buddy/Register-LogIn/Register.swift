@@ -32,7 +32,7 @@ struct UserProfile: Codable {
         favoriteButtons: [ButtonData] =
         [
             ButtonData(text: "Polisen", key: "3"),
-            ButtonData(text: "Google", key: "4")
+            ButtonData(text: "Seniortorget", key: "4")
         ]
     ) {
         self.userId = userId

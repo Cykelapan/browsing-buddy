@@ -99,11 +99,11 @@ struct NavigationButton: View {
     let color: Color
     let fontSize: Int
     let route: AppRoute
-    @Binding var path: NavigationPath // Binding to the navigation path
+    @Binding var path: NavigationPath
     
     var body: some View {
         Button(action: {
-            path.append(route) // Update path to navigate to the route
+            path.append(route)
         }) {
             Text(text)
                 .padding()

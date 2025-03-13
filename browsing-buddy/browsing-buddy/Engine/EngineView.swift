@@ -10,9 +10,10 @@ import UIKit
 
 struct EngineView: UIViewControllerRepresentable {
     @Binding var webViewController: WebViewController?
+    var userSession: UserSession
 
     func makeUIViewController(context: Context) -> WebViewController {
-        let controller = WebViewController()
+        let controller = WebViewController(userSession: userSession)
         DispatchQueue.main.async {
             self.webViewController = controller
         }
