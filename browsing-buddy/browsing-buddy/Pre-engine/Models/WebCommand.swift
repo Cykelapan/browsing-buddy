@@ -15,15 +15,15 @@ enum ElementKeyToUse : String, Codable{
 }
 
 enum FunctionToCall : String, Codable {
-    case INPUT_REQUEST = "INPUT_MESSAGE"
+    case INPUT_REQUEST = "INPUT_REQUEST"
     case SHOW_MESSAGE = "SHOW_MESSAGE"
+    case SHOW_EXTRACTED_MESSAGE = "SHOW_EXTRACTED_MESSAGE"
     case CLICK_BUTTON = "CLICK_BUTTON"
+    case Extract_Message = "Extract_Message"
+    case Insert_Element = "Insert_Element"
+    case Insert_Element_Class = "Insert_Element_Class"
     case A = "A"
-    case B = "B"
-    case C = "C"
     case D = "D"
-    case E = "E"
-    case F = "F"
     case G = "G"
 }
 

@@ -337,9 +337,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     private func getValueForType(valueType: String) -> String {
         switch valueType.lowercased() {
         case "email":
-            return userSession.currentUser?.email ?? ""
+            return userSession.currentUser.email
         case "password":
-            return userSession.currentUser?.password ?? ""
+            return userSession.currentUser.password
         //Får lägga till fler
         default:
             print("Unknown valueType: \(valueType)")
