@@ -95,6 +95,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "CLICK_BUTTON":
             clickElement(withId: action.parameter)
             processNextAction()
+            
         case "A":
             print("Entered A")
             navigateToPage(urlString: action.parameter)
@@ -124,10 +125,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "G":
             print("Entered G")
-            //clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate )
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
+            clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate )
+            /*DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate)
-             }
+             }*/
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -196,7 +197,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     private func clickElementClass(withClass className: String, willNavigate navigate: Bool) {
         isNavigating = navigate
         
-        let js = """
+        /*let js = """
         function waitForElement(className) {
             var elements = document.getElementsByClassName(className);
             if (elements.length > 0) {
@@ -206,6 +207,43 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             } else {
                 console.log("Element not found, retrying...");
                 setTimeout(function() { waitForElement(className); }, 500); // Retry until found
+            }
+        }
+        waitForElement('\(className)');
+        """*/
+        let js = """
+        function waitForElement(className) {
+            var elements = document.getElementsByClassName(className);
+            if (elements.length > 0) {
+                console.log("Element found, adding overlay...");
+                var element = elements[0];
+
+                var rect = element.getBoundingClientRect();
+
+                var overlay = document.createElement("div");
+                overlay.style.position = "absolute";
+                overlay.style.top = rect.top + window.scrollY + "px";
+                overlay.style.left = rect.left + window.scrollX + "px";
+                overlay.style.width = "100px";
+                overlay.style.height = "100px";
+                overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
+                overlay.style.zIndex = "5000";
+                overlay.style.pointerEvents = "none";
+                overlay.style.borderRadius = "50%";
+
+                document.body.appendChild(overlay);
+
+                setTimeout(function() {
+                    overlay.remove();
+                    element.click();
+                    console.log("Element clicked!");
+
+                    window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with class: ' + className);
+                }, 1000);
+
+            } else {
+                console.log("Element not found, retrying...");
+                setTimeout(function() { waitForElement(className); }, 500);
             }
         }
         waitForElement('\(className)');
@@ -335,18 +373,67 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         
         let js = """
         function waitForElement(xpath) {
+            var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            var element = result.singleNodeValue;
+
+            if (element) {
+                console.log("Element found via XPath, scrolling and adding overlay...");
+
+                //idiot vänta på den
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Jupp!! Där satt den! Tack Indiska Youtube!
+                setTimeout(function() {
+
+                    var rect = element.getBoundingClientRect();
+
+                    var overlay = document.createElement("div");
+                    overlay.style.position = "absolute";
+                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px"; // Center 100px circle
+                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px"; // Center 100px circle
+                    overlay.style.width = "100px";
+                    overlay.style.height = "100px";
+                    overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
+                    overlay.style.zIndex = "5000";
+                    overlay.style.pointerEvents = "none";
+                    overlay.style.borderRadius = "50%"; // Circle shape
+
+                    document.body.appendChild(overlay);
+
+                    setTimeout(function() {
+                        overlay.remove();
+                        element.click();
+                        console.log("Element clicked!");
+
+                        window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element via XPath: ' + xpath);
+                    }, 1000);
+
+                }, 500);
+                
+            } else {
+                console.log("Element not found, retrying...");
+                setTimeout(function() { waitForElement(xpath); }, 500); // Gör om gör rätt!
+            }
+        }
+        waitForElement('\(xpath)');
+        """
+
+
+        
+        /*let js = """
+        function waitForElement(xpath) {
             var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             if (element) {
                 console.log('Element found using XPath, clicking...');
                 element.click();
-                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath); // ✅ Notify Swift when done
+                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath);
             } else {
                 console.log('Element not found, retrying...');
                 setTimeout(function() { waitForElement(xpath); }, 500); // Retry until found
             }
         }
         waitForElement('\(xpath)');
-        """
+        """*/
         
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
