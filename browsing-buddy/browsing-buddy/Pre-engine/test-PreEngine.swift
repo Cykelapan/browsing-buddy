@@ -59,9 +59,8 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
 
     ]
     let actions2 = [
-        WebAction(functionToCall: "A", parameter: "https://www.google.se"),
+        
         WebAction(functionToCall: "SHOW_MESSAGE", parameter: "Du är på Google vid tryck navigeras du till Jönköpings Länstrafik"),
-        WebAction(functionToCall: "A", parameter: "https://www.jlt.se")
     ]
     
     let actions3 = [
@@ -69,8 +68,12 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
     ]
     
     let actions4 = [
-        WebAction(functionToCall: "A", parameter: "https://www.google.se")
-    ]
+        WebAction(functionToCall: "A", parameter: "https://www.jonkoping.se/fritid-kultur--natur/motesplatser-och-fritidsgardar/aktiviteter-for-seniorer/fysiska-traffpunkter-for-seniorer/seniortorget-huskvarna-f.d.-traffpunkt-hornan"),
+        WebAction(functionToCall: "Extract_Message", parameter: "//*[@id=\"svid12_1a8263dd17545631d955d4\"]/div[2]/p"),
+        WebAction(functionToCall: "SHOW_EXTRACTED_MESSAGE", parameter: "")
+        
+        ]
+
     
     if key == "2" {
         webViewController?.addActions(actions2)

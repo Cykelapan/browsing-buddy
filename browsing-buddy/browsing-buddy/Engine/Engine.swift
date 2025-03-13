@@ -26,6 +26,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     var actionQueue: [WebAction] = []
     var isProcessing = false
     var isNavigating = false
+    var extractedText: String = ""
     
     var onRequestUserInput: ((String, @escaping (String) -> Void) -> Void)?
     var onRequestShowMessage: ((String, @escaping () -> Void) -> Void)?
@@ -59,6 +60,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "callbackHandler" {
             print("JavaScript says: \(message.body)")
+            
+            //Ta emot extracted
+            if let messageBody = message.body as? String {
+                if messageBody.starts(with: "ExtractedText:") {
+                    let extracted = messageBody.replacingOccurrences(of: "ExtractedText:", with: "")
+                    self.extractedText = extracted
+                    print("Extracted text sparad: \(self.extractedText)")
+                }
+            }
             if !isNavigating {
                 processNextAction()
             }
@@ -91,10 +101,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             onRequestShowMessage?(action.parameter) {
                 self.processNextAction()
             }
-
-        case "CLICK_BUTTON":
-            clickElement(withId: action.parameter)
-            processNextAction()
+        
+        case "SHOW_EXTRACTED_MESSAGE":
+            onRequestShowMessage?(self.extractedText){
+                self.extractedText = ""
+                self.processNextAction()
+            }
             
         case "A":
             print("Entered A")
@@ -129,6 +141,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate)
              }*/
+        case "Extract_Message":
+            extractTextByXPath(xpath: action.parameter)
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -367,6 +381,26 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
+    private func extractTextByXPath(xpath: String) {
+        let js = """
+        function waitForElement(xpath) {
+            var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            if (element) {
+                console.log('Element found using XPath, extracting text...');
+                var text = element.innerText || element.textContent || '';
+                window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:' + text);
+            } else {
+                console.log('Element not found, retrying...');
+                setTimeout(function() { waitForElement(xpath); }, 500);
+            }
+        }
+        waitForElement('\(xpath)');
+        """
+        
+        webView.evaluateJavaScript(js, completionHandler: nil)
+    }
+
+    
     //klar
     private func clickElementByXPath(xpath: String, willNavigate navigate: Bool) {
         isNavigating = navigate
@@ -389,8 +423,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
 
                     var overlay = document.createElement("div");
                     overlay.style.position = "absolute";
-                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px"; // Center 100px circle
-                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px"; // Center 100px circle
+                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px";
+                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px";
                     overlay.style.width = "100px";
                     overlay.style.height = "100px";
                     overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
