@@ -350,7 +350,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     private func clickElementByXPath(xpath: String, willNavigate navigate: Bool) {
         isNavigating = navigate
         
-        let js = """
+       let js = """
         function waitForElement(xpath) {
             var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
             var element = result.singleNodeValue;
