@@ -8,6 +8,7 @@
 import SwiftUI
 import Foundation
 import AVFoundation
+import EventKit
 
 //För min älskade switch
 enum PopupType: Identifiable {
@@ -124,6 +125,26 @@ struct ContentView: View {
                        speechManager.speak(text) // Speak the message
                    }
                )
+               
+               CustomButton(
+                   text: "Lägg till i kalender",
+                   color: Color.orange,
+                   fontSize: 22,
+                   action: {
+                       print("Förbereder för kalenderinläggning...")
+
+                       // Parse events first
+                       let parser = EventManagerEventParser()
+                       let parsedEvents = parser.parseStringToInsert(input: text)
+                       print("🔍 Antal hittade event: \(parsedEvents.count)")
+
+                       // Insert with calendar access request
+                       let calendarManager = CalendarEventManager()
+                       calendarManager.printAvailableCalendars() // 👈 Add this line to debug calendars
+                       calendarManager.requestAccessAndInsertEvents(events: parsedEvents)
+                   }
+               )
+
 
                CustomButtonWithClosure(
                    text: "OK",
@@ -163,5 +184,201 @@ class SpeechManager {
 
     func stopSpeaking() {
         synthesizer.stopSpeaking(at: .immediate)
+    }
+}
+
+struct ParsedEvent {
+    let title: String
+    let startDate: Date
+    let endDate: Date?
+}
+
+class EventManagerEventParser {
+    
+    let swedishMonthMap: [String: Int] = [
+        "januari": 1, "februari": 2, "mars": 3, "april": 4, "maj": 5, "juni": 6,
+        "juli": 7, "augusti": 8, "september": 9, "oktober": 10, "november": 11, "december": 12
+    ]
+    
+    func parseStringToInsert(input: String) -> [ParsedEvent] {
+        return parseEventsFromString(input)
+    }
+    
+    private func parseEventsFromString(_ input: String) -> [ParsedEvent] {
+        var parsedEvents: [ParsedEvent] = []
+        
+        let dateBlockPattern = "(?=^[A-Öa-ö]+ \\d{1,2} [a-ö]+:)"
+        let regex = try! NSRegularExpression(pattern: dateBlockPattern, options: [.anchorsMatchLines])
+        let nsrange = NSRange(input.startIndex..<input.endIndex, in: input)
+        
+        let matches = regex.matches(in: input, options: [], range: nsrange)
+        
+        var blocks: [String] = []
+        var lastIndex = input.startIndex
+        
+        for match in matches {
+            let range = Range(match.range, in: input)!
+            if range.lowerBound != lastIndex {
+                let block = String(input[lastIndex..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !block.isEmpty {
+                    blocks.append(block)
+                }
+            }
+            lastIndex = range.lowerBound
+        }
+        
+        let finalBlock = String(input[lastIndex...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !finalBlock.isEmpty {
+            blocks.append(finalBlock)
+        }
+        
+        // Step 2: Process each block
+        for block in blocks {
+            let eventsInBlock = processDateBlock(block)
+            parsedEvents.append(contentsOf: eventsInBlock)
+        }
+        
+        return parsedEvents
+    }
+    
+    private func processDateBlock(_ block: String) -> [ParsedEvent] {
+        var events: [ParsedEvent] = []
+        
+        // Ta ut datum
+        let datePattern = "^[A-Öa-ö]+ (\\d{1,2}) ([a-ö]+):"
+        let dateRegex = try! NSRegularExpression(pattern: datePattern, options: [])
+        guard let match = dateRegex.firstMatch(in: block, options: [], range: NSRange(block.startIndex..., in: block)),
+              let dayRange = Range(match.range(at: 1), in: block),
+              let monthRange = Range(match.range(at: 2), in: block) else {
+            return events // No valid date found
+        }
+        
+        let day = Int(block[dayRange])!
+        let monthStr = String(block[monthRange]).lowercased()
+        guard let month = swedishMonthMap[monthStr] else { return events }
+        
+        // Ta ut tider och event
+        // Tack ChatGPT!
+        let timePattern = "(?:kl\\.?|klockan)\\s*(\\d{1,2}\\.\\d{2})(?:\\s*-\\s*(\\d{1,2}\\.\\d{2}))?(.+?)(?=(?:kl\\.?|klockan|$))"
+        let timeRegex = try! NSRegularExpression(pattern: timePattern, options: [.dotMatchesLineSeparators])
+        let nsrange = NSRange(block.startIndex..<block.endIndex, in: block)
+        
+        let timeMatches = timeRegex.matches(in: block, options: [], range: nsrange)
+        
+        for match in timeMatches {
+            let startTimeStr = String(block[Range(match.range(at: 1), in: block)!])
+            let endTimeStr = match.range(at: 2).location != NSNotFound ? String(block[Range(match.range(at: 2), in: block)!]) : nil
+            let description = String(block[Range(match.range(at: 3), in: block)!]).trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            // Skapa datum
+            let calendar = Calendar.current
+            var dateComponents = DateComponents()
+            dateComponents.year = Calendar.current.component(.year, from: Date()) // Assume current year
+            dateComponents.month = month
+            dateComponents.day = day
+            
+            // skapa start tid
+            let startParts = startTimeStr.split(separator: ".").compactMap { Int($0) }
+            dateComponents.hour = startParts[0]
+            dateComponents.minute = startParts[1]
+            guard let startDate = calendar.date(from: dateComponents) else { continue }
+            
+            // skapa sluttid ifall det finns
+            var endDate: Date? = nil
+            if let endStr = endTimeStr {
+                var endComponents = dateComponents
+                let endParts = endStr.split(separator: ".").compactMap { Int($0) }
+                endComponents.hour = endParts[0]
+                endComponents.minute = endParts[1]
+                endDate = calendar.date(from: endComponents)
+            }
+            
+            // skapa event
+            let event = ParsedEvent(title: description, startDate: startDate, endDate: endDate)
+            events.append(event)
+        }
+        
+        return events
+    }
+}
+
+
+class CalendarEventManager {
+
+    private let eventStore = EKEventStore()
+
+    // Public function to request access and insert events
+    func requestAccessAndInsertEvents(events: [ParsedEvent]) {
+        if #available(iOS 17.0, *) {
+            eventStore.requestFullAccessToEvents { [weak self] granted, error in
+                guard let self = self else { return }
+                if granted {
+                    DispatchQueue.main.async {
+                        self.insertEvents(events: events)
+                    }
+                } else {
+                    print("❌ Calendar access denied.")
+                }
+            }
+        } else {
+            eventStore.requestAccess(to: .event) { [weak self] granted, error in
+                guard let self = self else { return }
+                if granted {
+                    DispatchQueue.main.async {
+                        self.insertEvents(events: events)
+                    }
+                } else {
+                    print("❌ Calendar access denied.")
+                }
+            }
+        }
+    }
+
+    // Insert events safely
+    private func insertEvents(events: [ParsedEvent]) {
+        for event in events {
+            self.checkAndInsert(event: event)
+        }
+    }
+
+    // Check for duplicates and add if not existing
+    private func checkAndInsert(event: ParsedEvent) {
+        let startSearchDate = Calendar.current.date(byAdding: .hour, value: -1, to: event.startDate)!
+        let endSearchDate = Calendar.current.date(byAdding: .hour, value: 1, to: event.startDate)!
+
+        let predicate = eventStore.predicateForEvents(withStart: startSearchDate, end: endSearchDate, calendars: nil)
+        let existingEvents = eventStore.events(matching: predicate)
+
+        let alreadyExists = existingEvents.contains { existingEvent in
+            existingEvent.title == event.title &&
+            Calendar.current.isDate(existingEvent.startDate, equalTo: event.startDate, toGranularity: .minute)
+        }
+
+        if alreadyExists {
+            print("⚠️ Event '\(event.title)' already exists. Skipping.")
+            return
+        }
+
+        let calendarEvent = EKEvent(eventStore: eventStore)
+        calendarEvent.title = event.title
+        calendarEvent.startDate = event.startDate
+        calendarEvent.endDate = event.endDate ?? event.startDate.addingTimeInterval(3600) // Default 1-hour event
+        calendarEvent.calendar = eventStore.defaultCalendarForNewEvents
+
+        do {
+            try eventStore.save(calendarEvent, span: .thisEvent)
+            print("✅ Event added: \(event.title) on \(event.startDate)")
+        } catch {
+            print("❌ Failed to save event: \(error.localizedDescription)")
+        }
+    }
+    
+    func printAvailableCalendars() {
+        let calendars = eventStore.calendars(for: .event)
+        print("📅 --- Available Calendars ---")
+        for calendar in calendars {
+            print("📅 Calendar Name: \(calendar.title) | ID: \(calendar.calendarIdentifier) | Is Default: \(calendar == eventStore.defaultCalendarForNewEvents)")
+        }
+        print("📅 --------------------------")
     }
 }
