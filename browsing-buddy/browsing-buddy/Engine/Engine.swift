@@ -309,7 +309,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             if let error = error {
                 print("JavaScript injection error: \(error.localizedDescription)")
             }
-            // Continue to next action regardless of success/failure
             self.processNextAction()
         }
     }
@@ -379,7 +378,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
-    //helper
+    //helper för att välja ut rätt lösen, email, vad som egentligen
     private func getValueForType(valueType: String) -> String {
         switch valueType.lowercased() {
         case "email":
