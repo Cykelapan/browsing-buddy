@@ -195,6 +195,7 @@ struct ParsedEvent {
     let endDate: Date?
 }
 
+// Parsar seniortorgets events string
 class EventManagerEventParser {
     
     let swedishMonthMap: [String: Int] = [
