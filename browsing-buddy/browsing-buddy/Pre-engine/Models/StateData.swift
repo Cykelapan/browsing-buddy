@@ -18,7 +18,7 @@ struct WebState: Codable {
     let device : String
     let state : String
     
-    let webCommands : [WebCommand]
+    let webCommands : [WebAction]
     let uiButtons : [UIButtonData]
     
 }

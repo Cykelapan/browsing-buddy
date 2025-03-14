@@ -11,7 +11,18 @@ struct ButtonData: Codable {
     let text: String
     let key: String
 }
-
+/* TODO:
+ Array of PasswordManager -> website, username, password
+ - Text size
+ - Languages - text to speech and text exctraction
+ - modeColor - dark/light
+ - contrastText -
+ - username nessesary or not for or app?
+ - connected accounts - google calander, iOS, android or something else?
+ - object with input text?
+ - dob
+ - 
+ */
 struct UserProfile: Codable {
     var userId: String
     var email: String

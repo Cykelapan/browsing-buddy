@@ -8,25 +8,7 @@
 import UIKit
 import WebKit
 
-struct WebAction {
-    let functionToCall: String
-    let parameter: String
-    let willNavigate: Bool // måste vara med ifall navigation sker vid en action
-    let extractFromUser: String?
-    let title: String?
-    let acessCalendar: Bool?
-    
 
-    init(functionToCall: String, parameter: String, willNavigate: Bool = false, extractFromUser: String? = nil, title: String? = nil,
-         accessCalendar: Bool? = nil) {
-        self.functionToCall = functionToCall
-        self.parameter = parameter
-        self.willNavigate = willNavigate
-        self.extractFromUser = extractFromUser
-        self.title = title
-        self.acessCalendar = accessCalendar
-    }
-}
 
 class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessageHandler {
     
@@ -111,7 +93,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         
         let action = actionQueue.removeFirst()
         
-        switch action.functionToCall {
+        switch action.functionToCall.rawValue {
             
         case "INPUT_REQUEST":
             // Fungerar inte än
@@ -120,42 +102,43 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
 
         case "SHOW_MESSAGE":
-            onRequestShowMessage?(action.title ?? "Information", action.parameter, action.acessCalendar ?? false) { // om ingen titel passeras in använda default
+            onRequestShowMessage?(action.informationTitle, action.descriptionMessage, action.accessCalendar ?? false) { // om ingen titel passeras in använda default
                 self.processNextAction()
             }
         
         case "SHOW_EXTRACTED_MESSAGE":
-            onRequestShowMessage?(action.title ?? "Information", self.extractedText, action.acessCalendar ?? false){
+            onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
                 self.extractedText = ""
                 self.processNextAction()
             }
             
-        case "A":
+        case "NAVIGATE_WEB":
             print("Entered A")
-            navigateToPage(urlString: action.parameter)
-        case "D":
+            navigateToPage(urlString: action.websiteUrl)
+            
+        case "CLICK_ELEMENT_CLASS":
             print("Entered D")
-            clickElementClass(withClass: action.parameter, willNavigate: action.willNavigate)
+            clickElementClass(withClass: action.jsElementKey, willNavigate: action.willNavigate)
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
              self.clickElementClass(withClass: action.parameter)
              }*/
-        case "G":
+        case "CLICK_ELEMENT_XPATH":
             print("Entered G")
-            clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate )
+            clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate)
              }*/
-        case "Extract_Message":
-            extractTextByXPath(xpath: action.parameter)
+        case "EXTRACT_TEXT_XPATH":
+            extractTextByXPath(xpath: action.jsElementKey)
             
-        case "Insert_Element":
-            fillElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate, valueType: action.extractFromUser ?? "")
+        case "INSERT_ELEMENT_XPATH":
+            fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
             
-        case "Insert_Element_Class":
-            fillElementByClass(className: action.parameter, willNavigate: action.willNavigate, valueType: action.extractFromUser ?? "")
+        case "INSERT_ELEMENT_CLASS":
+            fillElementByClass(className: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser )
             
-        case "Extract_List_By_Xpath":
-            extractListItemsByXPath(xpath: action.parameter)
+        case "EXTRACT_LIST_BY_XPATH":
+            extractListItemsByXPath(xpath: action.jsElementKey)
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -319,8 +302,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
 
     
     //klar men svår att targetta med
-    private func fillElementByXPath(xpath: String, willNavigate navigate: Bool, valueType: String) {
-        let valueToInsert = getValueForType(valueType: valueType)
+    private func fillElementByXPath(xpath: String, willNavigate navigate: Bool, valueType: ExtractFromUser) {
+        let valueToInsert = valueType.getValue(session: userSession) //getValueForType(valueType: valueType)
 
         let js = """
         function waitForElement(xpath, value) {
@@ -348,8 +331,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     }
     
     //klar Fungerar bättre med class om det e textfields
-    private func fillElementByClass(className: String, willNavigate navigate: Bool, valueType: String) {
-        let valueToInsert = getValueForType(valueType: valueType)
+    private func fillElementByClass(className: String, willNavigate navigate: Bool, valueType: ExtractFromUser) {
+        let valueToInsert = valueType.getValue(session: userSession) //getValueForType(valueType: valueType)
 
         let js = """
         function waitForElementByClass(className, value) {

@@ -14,6 +14,9 @@ import SwiftUI
 
 struct TESTVIEW: View {
     @State private var fontSize: CGFloat = 15
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
+    
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
         VStack{
@@ -24,7 +27,7 @@ struct TESTVIEW: View {
                 }
             }
             
-        }.frame(width: 234, alignment: .center)
+        }
         
     }
 }
