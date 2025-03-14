@@ -307,7 +307,7 @@ class CalendarEventManager {
 
     private let eventStore = EKEventStore()
 
-    // Public function to request access and insert events
+    // Fråga efter tillåtelse
     func requestAccessAndInsertEvents(events: [ParsedEvent]) {
         if #available(iOS 17.0, *) {
             eventStore.requestFullAccessToEvents { [weak self] granted, error in
@@ -334,14 +334,14 @@ class CalendarEventManager {
         }
     }
 
-    // Insert events safely
+    // Lägg in events
     private func insertEvents(events: [ParsedEvent]) {
         for event in events {
             self.checkAndInsert(event: event)
         }
     }
 
-    // Check for duplicates and add if not existing
+    // Leta eftert dublett
     private func checkAndInsert(event: ParsedEvent) {
         let startSearchDate = Calendar.current.date(byAdding: .hour, value: -1, to: event.startDate)!
         let endSearchDate = Calendar.current.date(byAdding: .hour, value: 1, to: event.startDate)!
