@@ -333,13 +333,14 @@ class CalendarEventManager: ObservableObject {
         }
     }
 
+    //loopar igenom events
     private func insertEvents(events: [ParsedEvent]) {
         for event in events {
             self.checkAndInsert(event: event)
         }
     }
 
-    //Insertar de events som inte redan finns
+    //Insertar event som inte redan finns
     private func checkAndInsert(event: ParsedEvent) {
         let startSearchDate = Calendar.current.date(byAdding: .hour, value: -1, to: event.startDate)!
         let endSearchDate = Calendar.current.date(byAdding: .hour, value: 1, to: event.startDate)!
