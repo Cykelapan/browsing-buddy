@@ -14,13 +14,17 @@ struct WebAction {
     let willNavigate: Bool // måste vara med ifall navigation sker vid en action
     let extractFromUser: String?
     let title: String?
+    let acessCalendar: Bool?
+    
 
-    init(functionToCall: String, parameter: String, willNavigate: Bool = false, extractFromUser: String? = nil, title: String? = nil) {
+    init(functionToCall: String, parameter: String, willNavigate: Bool = false, extractFromUser: String? = nil, title: String? = nil,
+         accessCalendar: Bool? = nil) {
         self.functionToCall = functionToCall
         self.parameter = parameter
         self.willNavigate = willNavigate
         self.extractFromUser = extractFromUser
         self.title = title
+        self.acessCalendar = accessCalendar
     }
 }
 
@@ -34,7 +38,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     var userSession: UserSession
     
     var onRequestUserInput: ((String, @escaping (String) -> Void) -> Void)?
-    var onRequestShowMessage: ((String, String, @escaping () -> Void) -> Void)?
+    var onRequestShowMessage: ((String, String, Bool, @escaping () -> Void) -> Void)?
     
     init(userSession: UserSession) {
         self.userSession = userSession
@@ -116,12 +120,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
 
         case "SHOW_MESSAGE":
-            onRequestShowMessage?(action.title ?? "Information", action.parameter) { // om ingen titel passeras in använda default
+            onRequestShowMessage?(action.title ?? "Information", action.parameter, action.acessCalendar ?? false) { // om ingen titel passeras in använda default
                 self.processNextAction()
             }
         
         case "SHOW_EXTRACTED_MESSAGE":
-            onRequestShowMessage?(action.title ?? "Information", self.extractedText){
+            onRequestShowMessage?(action.title ?? "Information", self.extractedText, action.acessCalendar ?? false){
                 self.extractedText = ""
                 self.processNextAction()
             }

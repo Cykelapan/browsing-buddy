@@ -13,7 +13,7 @@ import EventKit
 //För min älskade switch
 enum PopupType: Identifiable {
     case input(prompt: String, onSubmit: (String) -> Void)
-    case message(title: String, text: String, onDismiss: () -> Void)
+    case message(title: String, text: String, accessCalender: Bool, onDismiss: () -> Void)
 
     var id: String {
         switch self {
@@ -72,8 +72,8 @@ struct ContentView: View {
                     controller.onRequestUserInput = { prompt, completion in
                         activePopup = .input(prompt: prompt, onSubmit: completion)
                     }
-                    controller.onRequestShowMessage = { title, text, completion in
-                        activePopup = .message(title: title, text: text, onDismiss: completion)
+                    controller.onRequestShowMessage = { title, text, accessCalendar, completion in
+                        activePopup = .message(title: title, text: text, accessCalender: accessCalendar, onDismiss: completion)
                     }
                 }
             }
@@ -94,8 +94,8 @@ struct ContentView: View {
                                 }
                             }
                             .padding()
-                        case .message(let title, let text, let onDismiss):
-                            messagePopupView(title: title, text: text, onDismiss: {
+                        case .message(let title, let text,let accessCalender, let onDismiss):
+                            messagePopupView(title: title, text: text, accessCalendar: accessCalender, onDismiss: {
                                 onDismiss()
                                 activePopup = nil
                             })
@@ -104,7 +104,7 @@ struct ContentView: View {
                 }
             }
     
-    private func messagePopupView(title: String, text: String, onDismiss: @escaping () -> Void) -> some View {
+    private func messagePopupView(title: String, text: String, accessCalendar: Bool, onDismiss: @escaping () -> Void) -> some View {
            VStack {
                Text(title)
                    .font(.title)
@@ -127,25 +127,26 @@ struct ContentView: View {
                        speechManager.speak(text) // Speak the message
                    }
                )
-               
-               CustomButton(
-                   text: "Lägg in i kalendern",
-                   color: Color.orange,
-                   fontSize: 22,
-                   action: {
-                       print("Förbereder för kalenderinläggning...")
-
-                       // Fixa stringen
-                       let parser = EventManagerEventParser()
-                       let parsedEvents = parser.parseStringToInsert(input: text)
-                       print("Antal hittade event: \(parsedEvents.count)")
-
-                       // Test med mindre batch
-                       //let smallBatch = Array(parsedEvents.prefix(2))
-                       //calendarManager.requestAccessAndInsertEvents(events: smallBatch)
-                       calendarManager.requestAccessAndInsertEvents(events: parsedEvents)
-                   }
-               )
+               if(accessCalendar){
+                   CustomButton(
+                    text: "Lägg in i kalendern",
+                    color: Color.orange,
+                    fontSize: 22,
+                    action: {
+                        print("Förbereder för kalenderinläggning...")
+                        
+                        // Fixa stringen
+                        let parser = EventManagerEventParser()
+                        let parsedEvents = parser.parseStringToInsert(input: text)
+                        print("Antal hittade event: \(parsedEvents.count)")
+                        
+                        // Test med mindre batch
+                        //let smallBatch = Array(parsedEvents.prefix(2))
+                        //calendarManager.requestAccessAndInsertEvents(events: smallBatch)
+                        calendarManager.requestAccessAndInsertEvents(events: parsedEvents)
+                    }
+                   )
+               }
 
                CustomButtonWithClosure(
                    text: "OK",
