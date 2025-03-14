@@ -31,6 +31,8 @@ struct ContentView: View {
     @EnvironmentObject var userSession: UserSession
     @State private var webViewController: WebViewController? = nil
     @State private var currentButtons: [ButtonData] = []
+    @StateObject private var calendarManager = CalendarEventManager()
+
     
     @State private var activePopup: PopupType? = nil
     private let speechManager = SpeechManager()
@@ -127,24 +129,23 @@ struct ContentView: View {
                )
                
                CustomButton(
-                   text: "Lägg till i kalender",
+                   text: "Lägg in i kalendern",
                    color: Color.orange,
                    fontSize: 22,
                    action: {
                        print("Förbereder för kalenderinläggning...")
 
-                       // Parse events first
+                       // Fixa stringen
                        let parser = EventManagerEventParser()
                        let parsedEvents = parser.parseStringToInsert(input: text)
-                       print("🔍 Antal hittade event: \(parsedEvents.count)")
+                       print("Antal hittade event: \(parsedEvents.count)")
 
-                       // Insert with calendar access request
-                       let calendarManager = CalendarEventManager()
-                       calendarManager.printAvailableCalendars() // 👈 Add this line to debug calendars
+                       // Test med mindre batch
+                       //let smallBatch = Array(parsedEvents.prefix(2))
+                       //calendarManager.requestAccessAndInsertEvents(events: smallBatch)
                        calendarManager.requestAccessAndInsertEvents(events: parsedEvents)
                    }
                )
-
 
                CustomButtonWithClosure(
                    text: "OK",
@@ -232,7 +233,7 @@ class EventManagerEventParser {
             blocks.append(finalBlock)
         }
         
-        // Step 2: Process each block
+        // Varje block i stringen
         for block in blocks {
             let eventsInBlock = processDateBlock(block)
             parsedEvents.append(contentsOf: eventsInBlock)
@@ -303,11 +304,13 @@ class EventManagerEventParser {
 }
 
 
-class CalendarEventManager {
+import EventKit
 
+@MainActor
+class CalendarEventManager: ObservableObject {
     private let eventStore = EKEventStore()
 
-    // Fråga efter tillåtelse
+    //ChatGPT kod för bekräftelse av tillgång till kalender
     func requestAccessAndInsertEvents(events: [ParsedEvent]) {
         if #available(iOS 17.0, *) {
             eventStore.requestFullAccessToEvents { [weak self] granted, error in
@@ -316,8 +319,6 @@ class CalendarEventManager {
                     DispatchQueue.main.async {
                         self.insertEvents(events: events)
                     }
-                } else {
-                    print("❌ Calendar access denied.")
                 }
             }
         } else {
@@ -327,21 +328,18 @@ class CalendarEventManager {
                     DispatchQueue.main.async {
                         self.insertEvents(events: events)
                     }
-                } else {
-                    print("❌ Calendar access denied.")
                 }
             }
         }
     }
 
-    // Lägg in events
     private func insertEvents(events: [ParsedEvent]) {
         for event in events {
             self.checkAndInsert(event: event)
         }
     }
 
-    // Leta eftert dublett
+    //Insertar de events som inte redan finns
     private func checkAndInsert(event: ParsedEvent) {
         let startSearchDate = Calendar.current.date(byAdding: .hour, value: -1, to: event.startDate)!
         let endSearchDate = Calendar.current.date(byAdding: .hour, value: 1, to: event.startDate)!
@@ -354,31 +352,18 @@ class CalendarEventManager {
             Calendar.current.isDate(existingEvent.startDate, equalTo: event.startDate, toGranularity: .minute)
         }
 
-        if alreadyExists {
-            print("⚠️ Event '\(event.title)' already exists. Skipping.")
-            return
-        }
+        if alreadyExists { return }
 
         let calendarEvent = EKEvent(eventStore: eventStore)
         calendarEvent.title = event.title
         calendarEvent.startDate = event.startDate
-        calendarEvent.endDate = event.endDate ?? event.startDate.addingTimeInterval(3600) // Default 1-hour event
+        calendarEvent.endDate = event.endDate ?? event.startDate.addingTimeInterval(3600) // event alltid 1 timme om ingen sluttid
         calendarEvent.calendar = eventStore.defaultCalendarForNewEvents
 
         do {
             try eventStore.save(calendarEvent, span: .thisEvent)
-            print("✅ Event added: \(event.title) on \(event.startDate)")
         } catch {
-            print("❌ Failed to save event: \(error.localizedDescription)")
+            // Fixa vid error? Ingenting händer just nu ändå om det failar
         }
-    }
-    
-    func printAvailableCalendars() {
-        let calendars = eventStore.calendars(for: .event)
-        print("📅 --- Available Calendars ---")
-        for calendar in calendars {
-            print("📅 Calendar Name: \(calendar.title) | ID: \(calendar.calendarIdentifier) | Is Default: \(calendar == eventStore.defaultCalendarForNewEvents)")
-        }
-        print("📅 --------------------------")
     }
 }
