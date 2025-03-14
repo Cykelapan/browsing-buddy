@@ -74,7 +74,7 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
         WebAction(functionToCall: "A", parameter: "https://www.polisen.se")
     ]
     
-    let actions4 = [
+    let actions5 = [
          WebAction(functionToCall: "A", parameter: "https://www.google.se"),
          WebAction(
              functionToCall: "Insert_Element_Class",
@@ -84,9 +84,10 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
         
         ]
     
-    let actions5 = [
+    let actions4 = [
         WebAction(functionToCall: "A", parameter: "https://www.jonkoping.se/fritid-kultur--natur/motesplatser-och-fritidsgardar/aktiviteter-for-seniorer/fysiska-traffpunkter-for-seniorer/seniortorget-huskvarna-f.d.-traffpunkt-hornan"),
-        WebAction(functionToCall: "Extract_Message", parameter: "//*[@id=\"svid12_1a8263dd17545631d955d4\"]/div[2]/p"),
+        //WebAction(functionToCall: "Extract_Message", parameter: "//*[@id=\"svid12_1a8263dd17545631d955d4\"]/div[2]/p"),
+        WebAction(functionToCall: "Extract_List_By_Xpath", parameter: "//*[@id=\"svid12_71cb585d1946405449610734\"]/div[2]/ul"),
         WebAction(functionToCall: "SHOW_EXTRACTED_MESSAGE", parameter: "")
         ]
 

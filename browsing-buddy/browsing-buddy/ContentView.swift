@@ -74,9 +74,6 @@ struct ContentView: View {
                     }
                 }
             }
-            .onAppear(){
-                speechManager.listAvailableVoices()
-            }
                     .sheet(item: $activePopup) { popup in
                         // Lazer Denis i farten igen =)
                         switch popup {
@@ -109,9 +106,12 @@ struct ContentView: View {
                Text(title)
                    .font(.title)
                    .fontWeight(.bold)
-               Text(text)
-                   .font(.headline)
-                   .padding()
+               
+               ScrollView{
+                   Text(text)
+                       .font(.headline)
+                       .padding()
+               }
 
                Spacer()
 
@@ -158,19 +158,10 @@ class SpeechManager {
         tal.voice = AVSpeechSynthesisVoice(language: "sv-SE") // kanske gör till in-parameter ifall man lägger in överättare senare
         tal.rate = 0.5
 
-        //Debug
-        print("Using voice: \(tal.voice?.identifier ?? "Unknown")")
         synthesizer.speak(tal)
     }
 
     func stopSpeaking() {
         synthesizer.stopSpeaking(at: .immediate)
-    }
-
-    // Ta bort sen, endast för att kolla o det fanns röster / språk
-    func listAvailableVoices() {
-        for voice in AVSpeechSynthesisVoice.speechVoices() {
-            print("Voice Identifier: \(voice.identifier), Language: \(voice.language), Name: \(voice.name)")
-        }
     }
 }
