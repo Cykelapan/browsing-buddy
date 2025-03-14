@@ -79,7 +79,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 if messageBody.starts(with: "ExtractedText:") {
                     let extracted = messageBody.replacingOccurrences(of: "ExtractedText:", with: "")
                     self.extractedText = extracted
-                    print("Extracted text sparad: \(self.extractedText)")
+                    //print("Extracted text sparad: \(self.extractedText)") lämnar för debug
+                }
+                if messageBody.starts(with: "ExtractedList:") {
+                    let extracted = messageBody.replacingOccurrences(of: "ExtractedList:", with: "")
+                    self.extractedText = extracted
+                    //print("Extracted text sparad: \(self.extractedText)")
                 }
             }
             if !isNavigating {
@@ -111,12 +116,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
 
         case "SHOW_MESSAGE":
-            onRequestShowMessage?(action.title ?? "Information", action.parameter) {
+            onRequestShowMessage?(action.title ?? "Information", action.parameter) { // om ingen titel passeras in använda default
                 self.processNextAction()
             }
         
         case "SHOW_EXTRACTED_MESSAGE":
-            onRequestShowMessage?(action.title ?? "", self.extractedText){
+            onRequestShowMessage?(action.title ?? "Information", self.extractedText){
                 self.extractedText = ""
                 self.processNextAction()
             }
@@ -145,6 +150,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "Insert_Element_Class":
             fillElementByClass(className: action.parameter, willNavigate: action.willNavigate, valueType: action.extractFromUser ?? "")
             
+        case "Extract_List_By_Xpath":
+            extractListItemsByXPath(xpath: action.parameter)
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -250,6 +257,37 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
+    //klar
+    private func extractListItemsByXPath(xpath: String) {
+        let js = """
+        function waitForElement(xpath) {
+            var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            if (element) {
+                console.log('Element found using XPath, extracting list items...');
+                var listItems = element.querySelectorAll('li');
+                var texts = [];
+                listItems.forEach(function(li) {
+                    var text = li.innerText || li.textContent || '';
+                    texts.push(text.trim());
+                });
+                var finalText = texts.join('\\n\\n');
+                window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedList:' + finalText);
+            } else {
+                console.log('Element not found, retrying...');
+                setTimeout(function() { waitForElement(xpath); }, 500);
+            }
+        }
+        waitForElement('\(xpath)');
+        """
+
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+            }
+            self.processNextAction()
+        }
+    }
+    
     //Klar
     private func extractTextByXPath(xpath: String) {
         let js = """
@@ -266,9 +304,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
         waitForElement('\(xpath)');
         """
-        
-        webView.evaluateJavaScript(js, completionHandler: nil)
+
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+            }
+            self.processNextAction()
+        }
     }
+
     
     //klar men svår att targetta med
     private func fillElementByXPath(xpath: String, willNavigate navigate: Bool, valueType: String) {
@@ -334,6 +378,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
+    //helper för att välja ut rätt lösen, email, vad som egentligen
     private func getValueForType(valueType: String) -> String {
         switch valueType.lowercased() {
         case "email":
