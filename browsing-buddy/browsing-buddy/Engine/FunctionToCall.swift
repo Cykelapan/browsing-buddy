@@ -23,6 +23,9 @@ enum FunctionToCall : String, Codable {
     case EXTRACT_LIST_BY_XPATH = "EXTRACT_LIST_BY_XPATH"
     case INSERT_ELEMENT_XPATH = "INSERT_ELEMENT_XPATH"
     
+    case CLICK_ELEMENT_CLASS_HIGHLIGHT = "CLICK_ELEMENT_CLASS_HIGHLIGHT"
+    case CLICK_ELEMENT_XPATH_HIGHLIGHT = "CLICK_ELEMENT_XPATH_HIGHLIGHT"
+    
     func getValue(jsKey: JSElementKeys) -> String?{
         switch self {
         case .INPUT_REQUEST, .SHOW_MESSAGE, .SHOW_EXTRACTED_MESSAGE , .NAVIGATE_WEB:
@@ -32,7 +35,7 @@ enum FunctionToCall : String, Codable {
         case .INSERT_ELEMENT_CLASS, .CLICK_ELEMENT_CLASS:
             return jsKey.classPath ?? jsKey.className
             
-        case .CLICK_ELEMENT_XPATH, .EXTRACT_LIST_BY_XPATH, .EXTRACT_TEXT_XPATH, .INSERT_ELEMENT_XPATH:
+        case .CLICK_ELEMENT_XPATH, .EXTRACT_LIST_BY_XPATH, .EXTRACT_TEXT_XPATH, .INSERT_ELEMENT_XPATH, .CLICK_ELEMENT_CLASS_HIGHLIGHT, .CLICK_ELEMENT_XPATH_HIGHLIGHT :
             return jsKey.xPath
             
         }

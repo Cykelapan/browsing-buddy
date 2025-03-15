@@ -139,6 +139,12 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "EXTRACT_LIST_BY_XPATH":
             extractListItemsByXPath(xpath: action.jsElementKey)
             
+        case "CLICK_ELEMENT_CLASS_HIGHLIGHT":
+            clickElementClassHighlight(withClass: action.jsElementKey, willNavigate: action.willNavigate)
+            
+        case "CLICK_ELEMENT_XPATH_HIGHLIGHT":
+            clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
+            
         default:
             print("Unknown action: \(action.functionToCall)")
             processNextAction()
@@ -184,7 +190,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     private func clickElementClass(withClass className: String, willNavigate navigate: Bool) {
         isNavigating = navigate
         
-        /*let js = """
+        let js = """
         function waitForElement(className) {
             var elements = document.getElementsByClassName(className);
             if (elements.length > 0) {
@@ -197,7 +203,21 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
         waitForElement('\(className)');
-        """*/
+        """
+       
+        
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript Error: \(error.localizedDescription)")
+                self.processNextAction()
+            }
+        }
+    }
+    
+    //klar
+    private func clickElementClassHighlight(withClass className: String, willNavigate navigate: Bool) {
+        isNavigating = navigate
+        
         let js = """
         function waitForElement(className) {
             var elements = document.getElementsByClassName(className);
@@ -243,7 +263,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
     }
-    
     //klar
     private func extractListItemsByXPath(xpath: String) {
         let js = """
@@ -384,6 +403,34 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     private func clickElementByXPath(xpath: String, willNavigate navigate: Bool) {
         isNavigating = navigate
         
+        
+        let js = """
+        function waitForElement(xpath) {
+            var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            if (element) {
+                console.log('Element found using XPath, clicking...');
+                element.click();
+                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath);
+            } else {
+                console.log('Element not found, retrying...');
+                setTimeout(function() { waitForElement(xpath); }, 500); // Retry until found
+            }
+        }
+        waitForElement('\(xpath)');
+        """
+        
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+                self.processNextAction()
+            }
+        }
+    }
+    
+    //klar
+    private func clickElementByXPathHighlight(xpath: String, willNavigate navigate: Bool) {
+        isNavigating = navigate
+        
        let js = """
         function waitForElement(xpath) {
             var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
@@ -430,21 +477,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
         waitForElement('\(xpath)');
         """
-        
-        /*let js = """
-        function waitForElement(xpath) {
-            var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-            if (element) {
-                console.log('Element found using XPath, clicking...');
-                element.click();
-                window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath);
-            } else {
-                console.log('Element not found, retrying...');
-                setTimeout(function() { waitForElement(xpath); }, 500); // Retry until found
-            }
-        }
-        waitForElement('\(xpath)');
-        """*/
         
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
