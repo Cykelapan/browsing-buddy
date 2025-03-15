@@ -101,11 +101,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
 
         case "SHOW_MESSAGE":
+            print("SHOW_MESSAGE")
             onRequestShowMessage?(action.informationTitle, action.descriptionMessage, action.accessCalendar ?? false) { // om ingen titel passeras in använda default
                 self.processNextAction()
             }
         
         case "SHOW_EXTRACTED_MESSAGE":
+            print("SHOW_EXTRACTED_MESSAGE")
             onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
                 self.extractedText = ""
                 self.processNextAction()
@@ -116,27 +118,31 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             navigateToPage(urlString: action.websiteUrl)
             
         case "CLICK_ELEMENT_CLASS":
-            print("Entered D")
+            print("CLICK_ELEMENT_CLASS")
             clickElementClass(withClass: action.jsElementKey, willNavigate: action.willNavigate)
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
              self.clickElementClass(withClass: action.parameter)
              }*/
         case "CLICK_ELEMENT_XPATH":
-            print("Entered G")
+            print("CLICK_ELEMENT_XPATH")
             clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.clickElementByXPath(xpath: action.parameter, willNavigate: action.willNavigate)
              }*/
         case "EXTRACT_TEXT_XPATH":
+            print("EXTRACT_TEXT_XPATH")
             extractTextByXPath(xpath: action.jsElementKey)
             
         case "INSERT_ELEMENT_XPATH":
+            print("INSERT_ELEMENT_XPATH")
             fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
             
         case "INSERT_ELEMENT_CLASS":
+            print("INSERT_ELEMENT_CLASS")
             fillElementByClass(className: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser )
             
         case "EXTRACT_LIST_BY_XPATH":
+            print("EXTRACT_LIST_BY_XPATH")
             extractListItemsByXPath(xpath: action.jsElementKey)
             
         case "CLICK_ELEMENT_CLASS_HIGHLIGHT":

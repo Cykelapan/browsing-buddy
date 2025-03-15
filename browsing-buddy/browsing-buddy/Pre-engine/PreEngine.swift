@@ -32,19 +32,12 @@ class PreEngine {
     private func sendWebCommandsToEngine(commands: [String]){
         //send the webcommands
     }
-    
-    public func buttonAction(button: UIButtonData, webViewController: WebViewController) async -> [UIButtonData] {
+ 
+    public func buttonAction(button: UIButtonData, webViewController: WebViewController) async -> WebstateResponse {
         //Get data based on button pressed, collect data and send it back into Engine and buttons
         //TODO: fix return type and try to make it somewhat safe
-        let result = await ApiState.getWebAction(uiButton: button)
-        switch result {
-        case .failiure(let d):
-            return []
-        case .sucsses(let state):
-            await webViewController.addActions(state.webCommands)
-            return state.uiButtons
-          
-        }
+        return await ApiState.getWebAction(uiButton: button)
+       
         
     }
 }

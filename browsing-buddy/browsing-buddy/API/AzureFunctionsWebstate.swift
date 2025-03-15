@@ -42,11 +42,11 @@ class AzureFunctionsWebState {
             guard let isResponse = (response as? HTTPURLResponse) else {
                 return WebstateResponse.failiure("BAD response")
             }
-           
-            
+            print(isResponse)
+            print(data)
             if ((300...500).contains(isResponse.statusCode)) { return WebstateResponse.failiure("Err") }
             let convertdata = try JSONDecoder().decode(WebState.self, from: data)
-            
+            print("convertdata")
             return WebstateResponse.sucsses(convertdata)
             
         } catch {

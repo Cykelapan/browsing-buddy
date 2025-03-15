@@ -8,6 +8,63 @@
 import Foundation
 
 
+/*
+
+{
+    "website": "Jönköping Kommun",
+    "state": "Text",
+    "device": "iPhone",
+    
+    "webCommands": {
+        "websiteUrl" : "https://www.jonkoping.se/fritid-kultur--natur/motesplatser-och-fritidsgardar/aktiviteter-for-seniorer/fysiska-traffpunkter-for-seniorer/seniortorget-huskvarna-f.d.-traffpunkt-hornan",
+        "functionToCall" : "NAVIGATE_WEB",
+        "extractFromUser" : "NOTHING",
+        "informationTitle": "",
+        "willNavigate" : true,
+        "jsElmentKeys" : {
+            "className" : null,
+            "classPath" : null,
+            "elementId" : null,
+            "elementTag" : null,
+            "cssSelector" : null,
+            "xPath" : null
+        }
+    }, {
+        
+        "websiteUrl" : "https://www.jonkoping.se/fritid-kultur--natur/motesplatser-och-fritidsgardar/aktiviteter-for-seniorer/fysiska-traffpunkter-for-seniorer/seniortorget-huskvarna-f.d.-traffpunkt-hornan",
+        "functionToCall" : "EXTRACT_LIST_BY_XPATH",
+        "extractFromUser" : "NOTHING",
+        "informationTitle": "",
+        "willNavigate" : false,
+        "jsElmentKeys" : {
+            "className" : null,
+            "classPath" : null,
+            "elementId" : null,
+            "elementTag" : null,
+            "cssSelector" : null,
+            "xPath" : "//*[@id=\"svid12_5d10a33b194d02baeae52ef5\"]/div[2]/ul"
+        }
+    }, {
+        "websiteUrl" : "https://www.jonkoping.se/fritid-kultur--natur/motesplatser-och-fritidsgardar/aktiviteter-for-seniorer/fysiska-traffpunkter-for-seniorer/seniortorget-huskvarna-f.d.-traffpunkt-hornan",
+        "functionToCall" : "SHOW_EXTRACTED_MESSAGE",
+        "extractFromUser" : "NOTHING",
+        "informationTitle": "",
+        "willNavigate" : false,
+        "accessCalander": true
+        "jsElmentKeys" : {
+            "className" : "null",
+            "classPath" : "null",
+            "elementId" : "null",
+            "elementTag" : "null",
+            "cssSelector" : "null",
+            "xPath" : "null"
+            
+        }
+    }
+        
+}
+*/*/
+
 enum FunctionToCall : String, Codable {
     case INPUT_REQUEST = "INPUT_REQUEST"
     case SHOW_MESSAGE = "SHOW_MESSAGE"
