@@ -6,18 +6,42 @@
 //
 
 import Foundation
-
-//Till senare att fixa kopplingar mellan api, alla variabler och usersession 
-class SetupModel : Observable {
+import Observation
+//Till senare att fixa kopplingar mellan api, alla variabler och usersession
+@Observable
+class SetupModel  {
     private let UserApi = AzureFunctionsUser()
     
     
     
-    public func loginUser(input: AppUser) async -> ResponseRegistrationLogin {
-        return await UserApi.userLogin(input: input)
+    public func loginUser(input: AppUser, userSession: UserSession) async -> ResponseRegistrationLogin {
+        let res = await UserApi.userLogin(input: input)
+        switch res {
+        case .sucssess(let userData):
+            //TODO: update userSession to close the setUpviews and enter contents view with a bool
+            userSession.currentUser = userData
+        
+            
+        case .failuer(let msg):
+            print(msg)
+            
+        }
+        return res
     }
-    
-    public func registerUser(input: AppUser) async -> ResponseRegistrationLogin {
-        return await UserApi.userRegister(input: input)
+    //TODO: uppdater så den kan ta in en hel form med data när den registeras
+    public func registerUser(input: AppUser, userSession: UserSession) async -> ResponseRegistrationLogin {
+        let res = await UserApi.userLogin(input: input)
+        switch res {
+        case .sucssess(let userData):
+            //TODO: update userSession to close the setUpviews and enter contents view with a bool
+            userSession.currentUser = userData
+        
+            
+        case .failuer(let msg):
+            print(msg)
+            
+        }
+        return res
+       
     }
 }

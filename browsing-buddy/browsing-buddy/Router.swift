@@ -8,19 +8,33 @@
 import SwiftUI
 
 enum AppRoute: Hashable {
-    case registrera
+    
     case contentView
-    case login
+
     
     @ViewBuilder
     func view(path: Binding<NavigationPath>) -> some View {
         switch self {
-        case .registrera:
-            RegisterView(path: path)
         case .contentView:
             ContentView()
+     
+            
+        }
+    }
+}
+
+
+enum AppRouteSetup: Hashable {
+    case registrera
+    case login
+    
+    @ViewBuilder
+    func view(path: Binding<NavigationPath>, model: Binding<SetupModel>) -> some View {
+        switch self {
+        case .registrera:
+            RegisterView(path: path, model: model)
         case .login:
-            LoginView(path: path)
+            LoginView(path: path, model: model)
             
         }
     }

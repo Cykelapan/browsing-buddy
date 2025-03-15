@@ -1,59 +1,54 @@
 //
-//  Main-Page.swift
+//  LandingPage.swift
 //  browsing-buddy
 //
-//  Created by Denis Ureke on 2025-03-12.
+//  Created by Adam Granlund on 2025-03-15.
 //
 
 import SwiftUI
 
-struct ParentView: View {
+struct LandingPage: View {
+    @State private var setup = SetupModel()
     @State private var path = NavigationPath()
-    @EnvironmentObject var userSession: UserSession
-    
     
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 40) {
-                Text("Välkomment till Browsing-Buddy")
+                Text("Välkommen till Browsing-Buddy")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                     .padding(.top, 50)
 
-                NavigationButton(
+                NavigationButtonSetup(
                     text: "Registrera dig",
                     color: .blue,
                     fontSize: 22,
                     route: .registrera,
-                    path: $path
+                    path: $path,
+                    model: $setup
                 )
                 .padding(.horizontal)
 
-                NavigationButton(
+                NavigationButtonSetup(
                     text: "Logga in",
                     color: .green,
                     fontSize: 22,
                     route: .login,
-                    path: $path
+                    path: $path,
+                    model: $setup
                 )
                 .padding(.horizontal)
 
                 Spacer()
             }
-            .navigationDestination(for: AppRoute.self) { route in
-                route.view(path: $path)
+            .navigationDestination(for: AppRouteSetup.self) { route in
+                route.view(path: $path, model: $setup)
             }
         }
     }
 }
 
 #Preview {
-    ParentView()
+    LandingPage()
 }
-
-
-
-
-
-

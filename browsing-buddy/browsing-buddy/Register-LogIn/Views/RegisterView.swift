@@ -10,11 +10,11 @@ import SwiftUI
 struct RegisterView: View {
     @EnvironmentObject var userSession: UserSession
     @Binding var path: NavigationPath
+    @Binding var model: SetupModel
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
     @State private var errormsg = ""
-    private let api = AzureFunctionsUser()
     
     var passwordMatch: Bool {
         !password.isEmpty && password == confirmPassword
@@ -50,16 +50,8 @@ struct RegisterView: View {
                   
                 Button {
                     Task {
-                        let res = await api.userRegister(input:   AppUser(email: email, passwordApp: confirmPassword))
-                        switch res {
-                        case .sucssess(let userData):
+                        await model.registerUser(input: AppUser(email: email, passwordApp: confirmPassword), userSession: userSession)
                         
-                            userSession.currentUser = userData
-                            path.append(AppRoute.contentView)
-                            
-                        case .failuer(let msg):
-                            errormsg = msg 
-                        }
                     }
                 } label: {
                     Text("Registera dig")

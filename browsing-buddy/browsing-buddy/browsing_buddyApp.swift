@@ -16,8 +16,14 @@ struct browsing_buddyApp: App {
         WindowGroup {
             /*ContentView()
                 .environmentObject(userSession)*/
-            ParentView()
-                .environmentObject(userSession)
+            /*ParentView()
+                .environmentObject(userSession)*/
+            if userSession.currentUser.userId == ""{
+                LandingPage()
+                    .environmentObject(userSession)
+            } else {
+                //TODO: contentView and that navigation
+            }
         }
     }
 }

@@ -17,7 +17,7 @@ struct ButtonData: Codable {
  - Languages - text to speech and text exctraction
  - modeColor - dark/light
  - contrastText -
- - username nessesary or not for or app?
+ - username nessesary or not ?
  - connected accounts - google calander, iOS, android or something else?
  - object with input text?
  - dob

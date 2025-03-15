@@ -12,6 +12,7 @@ import SwiftUI
 struct LoginView: View {
     @EnvironmentObject var userSession: UserSession
     @Binding var path: NavigationPath
+    @Binding var model: SetupModel
     @State private var errmsg = ""
     @State private var email: String = ""
     @State private var password: String = ""
@@ -37,17 +38,9 @@ struct LoginView: View {
 
             Button(action: {
                 Task {
-                    let res = await api.userLogin(input: AppUser(email: email , passwordApp: password))
-                    switch res {
-                    case .sucssess(let userData):
-                        
-                        userSession.currentUser = userData
-                        path.append(AppRoute.contentView)
-                        
-                    case .failuer(let msg):
-                        errmsg = msg 
-                        
-                    }
+                    await model.loginUser(input: AppUser(email: email , passwordApp: password), userSession: userSession)
+                  
+                   
                 }
             }) {
                 Text("Logga in")
