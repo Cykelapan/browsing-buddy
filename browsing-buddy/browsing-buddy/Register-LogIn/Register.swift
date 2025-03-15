@@ -44,6 +44,7 @@ struct UserProfile: Codable {
         [
             //TODO: hämta intial state knappar
             UIButtonData(buttonText: "Kommunen", nextStateKey: "67d4dba68c54d4af6dcadbba"),
+            UIButtonData(buttonText: "Länstrafiken", nextStateKey: "67d5ffa58c54d4af6dcadbe3")
             
         ]
     ) {

@@ -9,7 +9,7 @@ import Foundation
 
 
 enum ExtractFromUser : String, Codable{
-    case NOTHING = "NOTHING"
+    case NOTHING
     case GET_USERNAME = "GET_USERNAME"
     case GET_EMAIL = "GET_EMAIL"
     case GET_PASSWORD = "GET_PASSWORD"
@@ -21,9 +21,9 @@ enum ExtractFromUser : String, Codable{
     func getValue(session: UserSession) -> String {
         switch self {
         case .NOTHING:
-            return ""
+            return "1"
         case .GET_USERNAME:
-            return "username"
+            return "Värnamo station"
         case .GET_EMAIL:
             return session.currentUser.email
         case .GET_PASSWORD:

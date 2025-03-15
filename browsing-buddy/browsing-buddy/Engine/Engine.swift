@@ -252,7 +252,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                     console.log("Element clicked!");
 
                     window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with class: ' + className);
-                }, 1000);
+                }, 2000);
 
             } else {
                 console.log("Element not found, retrying...");
@@ -472,13 +472,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                         console.log("Element clicked!");
 
                         window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element via XPath: ' + xpath);
-                    }, 1000);
+                    }, 3000);
 
-                }, 500);
+                }, 1000);
                 
             } else {
                 console.log("Element not found, retrying...");
-                setTimeout(function() { waitForElement(xpath); }, 500); // Gör om gör rätt!
+                setTimeout(function() { waitForElement(xpath); }, 1000); // Gör om gör rätt!
             }
         }
         waitForElement('\(xpath)');
