@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct ActionButtonView: View {
-    let buttons: [ButtonData]
-    let onButtonTap: (String) -> Void
+    let buttons: [UIButtonData]
+    let onButtonTap: (UIButtonData) async -> Void
     let color: Color
     let fontSize: Int
 
     var body: some View {
         VStack(spacing: 5) {
-            ForEach(buttons, id: \.key) { buttonData in
-                CustomButton(text: buttonData.text, color: color, fontSize: fontSize) {
-                    onButtonTap(buttonData.key)
+            ForEach(buttons, id: \.nextStateKey) { buttonData in
+                CustomButton(text: buttonData.buttonText, color: color, fontSize: fontSize) {
+                    Task{await onButtonTap(buttonData)}
                 }
                 .frame(maxHeight: .infinity)
             }
@@ -28,16 +28,17 @@ struct ActionButtonView: View {
 }
 
 struct FavoriteButtonView: View {
-    let buttons: [ButtonData]
-    let onButtonTap: (String) -> Void
+    let buttons: [UIButtonData]
+    let onButtonTap: (UIButtonData) async -> Void
     let color: Color
     let fontSize: Int
 
     var body: some View {
         VStack(spacing: 5) {
-            ForEach(buttons, id: \.key) { buttonData in
-                CustomButton(text: buttonData.text, color: color, fontSize: fontSize) {
-                    onButtonTap(buttonData.key)
+            ForEach(buttons, id: \.nextStateKey) { buttonData in
+                CustomButton(text: buttonData.buttonText, color: color, fontSize: fontSize) {
+                    
+                    Task{await onButtonTap(buttonData)}
                 }
                 .frame(maxHeight: .infinity)
             }

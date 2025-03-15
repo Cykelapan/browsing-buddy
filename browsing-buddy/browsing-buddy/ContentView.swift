@@ -30,7 +30,7 @@ enum PopupType: Identifiable {
 struct ContentView: View {
     @EnvironmentObject var userSession: UserSession
     @State private var webViewController: WebViewController? = nil
-    @State private var currentButtons: [ButtonData] = []
+    @State private var currentButtons: [UIButtonData] = []
     @StateObject private var calendarManager = CalendarEventManager()
 
     
@@ -164,9 +164,16 @@ struct ContentView: View {
        }
     
     // äger knappen
-    private func handleButtonTap(key: String) {
-        let newButtons = orchestrator(key: key, webViewController: webViewController)
-        currentButtons = newButtons
+    private func handleButtonTap(button: UIButtonData) async {
+        //TODO: HITTA TILLBAKA TILL KNAPPAR
+       
+        let newButtons1 = await PreEngine.shared.buttonAction(button:button, webViewController: webViewController!)
+        currentButtons = newButtons1
+            
+        
+        
+        //let newButtons = orchestrator(key: button.key, webViewController: webViewController)
+        //currentButtons = newButtons
     }
 }
 

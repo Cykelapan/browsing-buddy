@@ -14,9 +14,9 @@ struct WebState: Codable {
     // Lägger till device
     
     let _id : String
-    let website : String
-    let device : String
-    let state : String
+    let website : String //Namn på hemsidan så det är lättare att se i JSON filer
+    let device : String //Vilken device tagit för
+    let state : String //Tanken är att varje sida kan ha Initial som alltid fungerar, sen gå till x, y eller z
     
     let webCommands : [WebAction]
     let uiButtons : [UIButtonData]

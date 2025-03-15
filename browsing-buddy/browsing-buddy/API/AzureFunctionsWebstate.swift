@@ -11,9 +11,11 @@ enum WebstateResponse{
     case sucsses(WebState)
     case failiure(String)
 }
-
-class AzureFunctionsWebstate{
-    let baseURI = "https://bd12-193-11-7-251.ngrok-free.app/api/"
+struct ButtonAction : Codable {
+    
+}
+class AzureFunctionsWebState {
+    private let baseURI = "https://bd12-193-11-7-251.ngrok-free.app/api/"
     private func encodeToJSON<T:Codable>(_ object: T) throws -> Data {
         return try JSONEncoder().encode(object)
     }
@@ -29,7 +31,7 @@ class AzureFunctionsWebstate{
         return req
     }
     
-    public func getWebstate(uiButton: UIButtonData) async -> WebstateResponse{
+    public func getWebAction(uiButton: UIButtonData) async -> WebstateResponse{
         guard let url = URL(string: baseURI + "webstate") else { return WebstateResponse.failiure("BAD URL")}
         
         do {
@@ -37,14 +39,18 @@ class AzureFunctionsWebstate{
             request.httpBody = try encodeToJSON(uiButton)
             
             let (data, response ) = try await URLSession.shared.data(for: request)
-            let isResponse = (response as! HTTPURLResponse)
+            guard let isResponse = (response as? HTTPURLResponse) else {
+                return WebstateResponse.failiure("BAD response")
+            }
+           
             
             if ((300...500).contains(isResponse.statusCode)) { return WebstateResponse.failiure("Err") }
-            
             let convertdata = try JSONDecoder().decode(WebState.self, from: data)
+            
             return WebstateResponse.sucsses(convertdata)
             
         } catch {
+            print(error)
             return WebstateResponse.failiure(error.localizedDescription)
         }
         

@@ -9,6 +9,7 @@ import Foundation
 import Observation
 //Till senare att fixa kopplingar mellan api, alla variabler och usersession
 @Observable
+@MainActor
 class SetupModel  {
     private let UserApi = AzureFunctionsUser()
     
@@ -19,7 +20,9 @@ class SetupModel  {
         switch res {
         case .sucssess(let userData):
             //TODO: update userSession to close the setUpviews and enter contents view with a bool
-            userSession.currentUser = userData
+            userSession.currentUser = UserProfile(userId: userData.userId, email: userData.email, password: userData.password)
+                
+            
         
             
         case .failuer(let msg):
@@ -29,19 +32,19 @@ class SetupModel  {
         return res
     }
     //TODO: uppdater så den kan ta in en hel form med data när den registeras
-    public func registerUser(input: AppUser, userSession: UserSession) async -> ResponseRegistrationLogin {
-        let res = await UserApi.userLogin(input: input)
+    public func registerUser(input: AppUser, userSession: UserSession) async   {
+        let res = await UserApi.userRegister(input: input)
         switch res {
         case .sucssess(let userData):
             //TODO: update userSession to close the setUpviews and enter contents view with a bool
-            userSession.currentUser = userData
+            userSession.currentUser = UserProfile(userId: userData.userId, email: userData.email, password: userData.password)
         
             
         case .failuer(let msg):
             print(msg)
             
         }
-        return res
+        
        
     }
 }

@@ -52,19 +52,19 @@ struct JSElementKeys: Codable {
  */
 struct WebAction : Codable{
     //function to call, will also take out the key from JSElementKeys
-    let functionToCall : FunctionToCall
-    
-    // Gör om det till ett enum på en gång
-    let extractFromUser : ExtractFromUser
-    
-    let informationTitle : String
-    let willNavigate : Bool
-    
-    let descriptionMessage : String
-    let accessCalendar : Bool?
     let websiteUrl : String //bara url med path
+    let functionToCall : FunctionToCall
+    let extractFromUser : ExtractFromUser
+    let accessCalendar : Bool?
+    let informationTitle : String
+    // Gör om det till ett enum på en gång
     
+    
+   
+    let willNavigate : Bool
     let jsElementKeys : JSElementKeys
+    //Dont need keys for this
+    let descriptionMessage : String
     let jsElementKey : String
     
     init(from decoder: any Decoder) throws {
@@ -72,12 +72,13 @@ struct WebAction : Codable{
         self.functionToCall = try container.decode(FunctionToCall.self, forKey: .functionToCall)
         self.jsElementKeys = try container.decode(JSElementKeys.self, forKey: .jsElementKeys)
         
-        self.accessCalendar = try container.decode(Bool.self, forKey: .accessCalendar)
+        self.accessCalendar = try container.decode(Bool?.self, forKey: .accessCalendar)
         self.willNavigate = try container.decode(Bool.self, forKey: .willNavigate)
     
         self.informationTitle = try container.decode(String?.self, forKey: .informationTitle) ?? "Information"
         self.websiteUrl = try container.decode(String.self, forKey: .websiteUrl)
-        self.descriptionMessage = try container.decode(String.self, forKey: .descriptionMessage)
+        self.descriptionMessage = try container.decodeIfPresent(String.self, forKey: .descriptionMessage) ?? "Information"
+        
         // Kan göras egna codingkeys
         //https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
         
@@ -86,7 +87,7 @@ struct WebAction : Codable{
             fatalError("missing key")
         }
         self.jsElementKey = key
-        //TODO: fixa så det väljer nyckel baserat på det som ska användas
+        //TODO: fixa så det väljer nyckel baserat på det som ska användas och blir säkert, är för lätt att skriva fel med strings
     }
 }
 

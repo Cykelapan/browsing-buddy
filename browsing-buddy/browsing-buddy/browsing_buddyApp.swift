@@ -20,10 +20,10 @@ struct browsing_buddyApp: App {
                 .environmentObject(userSession)*/
             if userSession.currentUser.userId == ""{
                 LandingPage()
-                    .environmentObject(userSession)
             } else {
                 //TODO: contentView and that navigation
+                ContentView()
             }
-        }
+        }.environmentObject(userSession)
     }
 }

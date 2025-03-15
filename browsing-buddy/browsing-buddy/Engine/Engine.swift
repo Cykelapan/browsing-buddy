@@ -92,7 +92,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
         
         let action = actionQueue.removeFirst()
-        
         switch action.functionToCall.rawValue {
             
         case "INPUT_REQUEST":
@@ -155,6 +154,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     }
     
     func addActions(_ actions: [WebAction]) {
+        print("action is called")
         actionQueue.append(contentsOf: actions)
         startProcessingQueue()
     }

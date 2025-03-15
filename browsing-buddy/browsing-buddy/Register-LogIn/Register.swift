@@ -30,7 +30,7 @@ struct UserProfile: Codable {
     var textSize: Int
     var mainColor: ColorData // Use ColorData here
     var favoriteColor: ColorData // Use ColorData here
-    var favoriteButtons: [ButtonData]
+    var favoriteButtons: [UIButtonData]
 
     // Example initializer
     init(
@@ -40,10 +40,11 @@ struct UserProfile: Codable {
         textSize: Int = 36,
         mainColor: Color = Color.blue,
         favoriteColor: Color = Color.red,
-        favoriteButtons: [ButtonData] =
+        favoriteButtons: [UIButtonData] =
         [
-            ButtonData(text: "Polisen", key: "3"),
-            ButtonData(text: "Seniortorget", key: "4")
+            //TODO: hämta intial state knappar
+            UIButtonData(buttonText: "Kommunen", nextStateKey: "67d4dba68c54d4af6dcadbba"),
+            
         ]
     ) {
         self.userId = userId
