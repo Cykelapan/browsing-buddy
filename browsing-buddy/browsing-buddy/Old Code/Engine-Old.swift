@@ -5,6 +5,7 @@
 //  Created by Denis Ureke on 2025-03-09.
 //
 
+/*
 import UIKit
 import WebKit
 
@@ -315,3 +316,4 @@ class WebViewController: UIViewController, WKNavigationDelegate {
         }
     }
 }
+*/
