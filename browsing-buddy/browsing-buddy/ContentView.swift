@@ -32,7 +32,7 @@ struct ContentView: View {
     @State private var webViewController: WebViewController? = nil
     @State private var currentButtons: [ButtonData] = []
     @StateObject private var calendarManager = CalendarEventManager()
-
+    @State private var showSuccessPopup = false
     
     @State private var activePopup: PopupType? = nil
     private let speechManager = SpeechManager()
@@ -77,6 +77,7 @@ struct ContentView: View {
                     }
                 }
             }
+            
                     .sheet(item: $activePopup) { popup in
                         // Lazer Denis i farten igen =)
                         switch popup {
@@ -102,6 +103,9 @@ struct ContentView: View {
                         }
                     }
                 }
+        .alert("Event är tillagt i din kalender", isPresented: $showSuccessPopup) {
+            Button("OK", role: .cancel) { }
+        }
             }
     
     private func messagePopupView(title: String, text: String, accessCalendar: Bool, onDismiss: @escaping () -> Void) -> some View {
@@ -143,7 +147,9 @@ struct ContentView: View {
                         // Test med mindre batch
                         //let smallBatch = Array(parsedEvents.prefix(2))
                         //calendarManager.requestAccessAndInsertEvents(events: smallBatch)
-                        calendarManager.requestAccessAndInsertEvents(events: parsedEvents)
+                        calendarManager.requestAccessAndInsertEvents(events: parsedEvents) {
+                            showSuccessPopup = true
+                        }
                     }
                    )
                }
@@ -312,14 +318,14 @@ import EventKit
 class CalendarEventManager: ObservableObject {
     private let eventStore = EKEventStore()
 
-    //ChatGPT kod för bekräftelse av tillgång till kalender
-    func requestAccessAndInsertEvents(events: [ParsedEvent]) {
+    func requestAccessAndInsertEvents(events: [ParsedEvent], onSuccess: @escaping () -> Void) {
         if #available(iOS 17.0, *) {
             eventStore.requestFullAccessToEvents { [weak self] granted, error in
                 guard let self = self else { return }
                 if granted {
                     DispatchQueue.main.async {
                         self.insertEvents(events: events)
+                        onSuccess()
                     }
                 }
             }
@@ -329,20 +335,19 @@ class CalendarEventManager: ObservableObject {
                 if granted {
                     DispatchQueue.main.async {
                         self.insertEvents(events: events)
+                        onSuccess()
                     }
                 }
             }
         }
     }
 
-    //loopar igenom events
     private func insertEvents(events: [ParsedEvent]) {
         for event in events {
             self.checkAndInsert(event: event)
         }
     }
 
-    //Insertar event som inte redan finns
     private func checkAndInsert(event: ParsedEvent) {
         let startSearchDate = Calendar.current.date(byAdding: .hour, value: -1, to: event.startDate)!
         let endSearchDate = Calendar.current.date(byAdding: .hour, value: 1, to: event.startDate)!
@@ -360,13 +365,14 @@ class CalendarEventManager: ObservableObject {
         let calendarEvent = EKEvent(eventStore: eventStore)
         calendarEvent.title = event.title
         calendarEvent.startDate = event.startDate
-        calendarEvent.endDate = event.endDate ?? event.startDate.addingTimeInterval(3600) // event alltid 1 timme om ingen sluttid
+        calendarEvent.endDate = event.endDate ?? event.startDate.addingTimeInterval(3600)
         calendarEvent.calendar = eventStore.defaultCalendarForNewEvents
 
         do {
             try eventStore.save(calendarEvent, span: .thisEvent)
         } catch {
-            // Fixa vid error? Ingenting händer just nu ändå om det failar
+            // Handle error if needed
         }
     }
 }
+
