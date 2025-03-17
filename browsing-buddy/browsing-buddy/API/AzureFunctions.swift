@@ -37,7 +37,7 @@ struct PasswordManager : Codable {
 
 class AzureFunctions {
     //Kan användas nu lokalt nu under utveckligen, sen när azure har det blir det fråga om user session och koppla det så
-    let baseURI = "https://bd12-193-11-7-251.ngrok-free.app/api/"
+    let baseURI = "https://5e4a-31-40-213-50.ngrok-free.app/api/"
     private func encodeToJSON<T:Codable>(_ object: T) throws -> Data {
         return try JSONEncoder().encode(object)
     }

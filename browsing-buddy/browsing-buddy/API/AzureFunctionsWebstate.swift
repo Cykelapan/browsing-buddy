@@ -15,7 +15,7 @@ struct ButtonAction : Codable {
     
 }
 class AzureFunctionsWebState {
-    private let baseURI = "https://bd12-193-11-7-251.ngrok-free.app/api/"
+    private let baseURI = "https://5e4a-31-40-213-50.ngrok-free.app/api/"
     private func encodeToJSON<T:Codable>(_ object: T) throws -> Data {
         return try JSONEncoder().encode(object)
     }

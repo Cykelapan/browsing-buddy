@@ -16,6 +16,7 @@ enum ExtractFromUser : String, Codable{
     case GET_FIRSTNAME = "GET_FIRSTNAME"
     case GET_LASTNAME = "GET_LASTNAME"
     case GET_FULLNAME = "GET_FULLNAME"
+    case GET_AGE
     
     //Koppla till användarens data
     func getValue(session: UserSession) -> String {
@@ -25,15 +26,18 @@ enum ExtractFromUser : String, Codable{
         case .GET_USERNAME:
             return "Värnamo station"
         case .GET_EMAIL:
+        //mail och inlogg till figma behöver vara här
             return session.currentUser.email
         case .GET_PASSWORD:
             return session.currentUser.password
         case .GET_FIRSTNAME:
-            return "firstname"
+            return "Jönköping"
         case .GET_LASTNAME:
-            return "lastname"
+            return "Stockholm"
         case .GET_FULLNAME:
-            return "fullname"
+            return "2020-08-16"
+        case .GET_AGE:
+            return "75"
         }
     }
 }

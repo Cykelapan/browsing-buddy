@@ -60,7 +60,6 @@ struct RegisterView: View {
                     .disabled(!isValidEmail && passwordMatch)
             }.textFieldStyle(.roundedBorder)
             .padding()
-            .background(Color.mint.gradient.opacity(0.7))
             .navigationTitle("Registrering")
             .navigationBarTitleDisplayMode(.inline)
     }
