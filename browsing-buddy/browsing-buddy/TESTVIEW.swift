@@ -44,44 +44,44 @@ struct TESTVIEW: View {
     
     var body: some View {
         NavigationStack {
-        VStack{
-            Form{
-                Section("Personligt") {
-                    TextField("First Name", text: $firstName)
-                    TextField("Last Name", text: $lastName)
-                
+            VStack{
+                Form{
+                    Section("Personligt") {
+                        TextField("First Name", text: $firstName)
+                        TextField("Last Name", text: $lastName)
                         
-                    DatePicker(
-                        "Födelsedatum",
-                        selection: $date,
-                        displayedComponents: [.date]
-                    )
-                }
-                Section("Kopplade konton") {
-                    AccountListView(accounts: $accounts)
-                }
                         
-                Section("Tecken strolek \(Int(fontSize))") {
-                    Slider(value: $fontSize, in: 15...40, step: 1) {
-                        Text("Point Size \(Int(fontSize))")
+                        DatePicker(
+                            "Födelsedatum",
+                            selection: $date,
+                            displayedComponents: [.date]
+                        )
                     }
-                    Text("Example på hur texten blir").font(.system(size: fontSize))
-                }
-                Section("OTHER"){
-                    Toggle("Uppläsning av text", isOn: $textToSpeech)
-                    HStack {
-                        Picker("Välj språk ", selection: $selectedLang) {
-                            ForEach(lang, id: \.self){ i in
-                                Text(i)
+                    Section("Kopplade konton") {
+                        AccountListView(accounts: $accounts)
+                    }
+                    
+                    Section("Tecken strolek \(Int(fontSize))") {
+                        Slider(value: $fontSize, in: 15...40, step: 1) {
+                            Text("Point Size \(Int(fontSize))")
+                        }
+                        Text("Example på hur texten blir").font(.system(size: fontSize))
+                    }
+                    Section("OTHER"){
+                        Toggle("Uppläsning av text", isOn: $textToSpeech)
+                        HStack {
+                            Picker("Välj språk ", selection: $selectedLang) {
+                                ForEach(lang, id: \.self){ i in
+                                    Text(i)
+                                }
+                                
+                                
                             }
                             
-                            
                         }
-                        
                     }
                 }
             }
-        }
         }
         
     }

@@ -11,40 +11,34 @@ import Observation
 @Observable
 @MainActor
 class SetupModel  {
-    private let UserApi = AzureFunctionsUser()
+    private let api = AzureFunctionsApi()
+    var errorMessage = ""
+    var email: String = ""
+    var password: String = ""
     
-    
-    
-    public func loginUser(input: AppUser, userSession: UserSession) async -> ResponseRegistrationLogin {
-        let res = await UserApi.userLogin(input: input)
-        switch res {
-        case .sucssess(let userData):
-            //TODO: update userSession to close the setUpviews and enter contents view with a bool
-            userSession.currentUser = UserProfile(userId: userData.userId, email: userData.email, password: userData.password)
-                
-            
+    public func loginUser(userSession: UserSession) async {
         
-            
-        case .failuer(let msg):
-            print(msg)
-            
+        let request = LoginRequest(user: AppUser(email: email, passwordApp: password))
+        let response = await api.send(request)
+        
+        switch response {
+        case .success(let respsonseData):
+            userSession.currentUser = UserProfile(userId: respsonseData._id, email: respsonseData.email, password: respsonseData.passwordApp)
+        case .failure(let error):
+            errorMessage = error.localizedDescription
         }
-        return res
     }
+    
     //TODO: uppdater så den kan ta in en hel form med data när den registeras
     public func registerUser(input: AppUser, userSession: UserSession) async   {
-        let res = await UserApi.userRegister(input: input)
-        switch res {
-        case .sucssess(let userData):
-            //TODO: update userSession to close the setUpviews and enter contents view with a bool
-            userSession.currentUser = UserProfile(userId: userData.userId, email: userData.email, password: userData.password)
-        
-            
-        case .failuer(let msg):
-            print(msg)
+        let request = RegisterRequest(user: input)
+        let response = await api.send(request)
+        switch response {
+        case .success(let respsonseData):
+            userSession.currentUser = UserProfile(userId: respsonseData._id, email: respsonseData.email, password: respsonseData.passwordApp)
+        case .failure(let err):
+            print(err)
             
         }
-        
-       
     }
 }

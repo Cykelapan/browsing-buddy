@@ -13,34 +13,28 @@ struct LoginView: View {
     @EnvironmentObject var userSession: UserSession
     @Binding var path: NavigationPath
     @Binding var model: SetupModel
-    @State private var errmsg = ""
-    @State private var email: String = ""
-    @State private var password: String = ""
-    private let api = AzureFunctionsUser()
-    
+ 
     var body: some View {
         VStack(spacing: 20) {
             Text("Logga in")
                 .font(.largeTitle)
                 .fontWeight(.bold)
                 .padding(.top, 40)
-            Text(errmsg)
-            TextField("Ange email", text: $email)
+            Text(model.errorMessage)
+            TextField("Ange email", text: $model.email)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .keyboardType(.emailAddress)
                 .padding(.horizontal)
 
-            SecureField("Ange lösenord", text: $password)
+            SecureField("Ange lösenord", text: $model.password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding(.horizontal)
 
             Button(action: {
                 Task {
-                    await model.loginUser(input: AppUser(email: email , passwordApp: password), userSession: userSession)
-                  
-                   
+                    await model.loginUser(userSession: userSession)
                 }
             }) {
                 Text("Logga in")
@@ -54,7 +48,23 @@ struct LoginView: View {
             .padding(.horizontal)
             .padding(.top, 20)
 
-            Spacer()
+            Button(action: {
+                Task {
+                    userSession.currentUser = UserProfile(userId: "respsonseData._id", email: "aa@aa.aa", password: "aa")
+                  
+                   
+                }
+            }) {
+                Text("Dev login")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                    .font(.title3)
+            }
+            .padding(.horizontal)
+            .padding(.top, 20)
         }
         .navigationTitle("Logga in")
         .navigationBarTitleDisplayMode(.inline)

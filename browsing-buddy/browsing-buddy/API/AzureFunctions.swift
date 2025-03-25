@@ -1,147 +1,104 @@
 //
-//  AzureFunctions.swift
+//  AzureFunctionsBase.swift
 //  browsing-buddy
 //
-//  Created by Adam Granlund on 2025-03-12.
+//  Created by Adam Granlund on 2025-03-25.
 //
+
 import Foundation
 
-enum CRUD{
-    case CREATE
-    case REMOVE
-    case UPDATE
-    case DELETE
-}
 
-enum HTTPMETHOD : String {
-    case GET = "GET"
-    case POST = "POST"
-    case PUT = "PUT"
-    case PATCH = "PATCH"
-    case DELETE = "DELETE"
+enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case delete = "DELETE"
+    case patch = "PATCH"
 }
-
-struct StateKey: Codable {
-    let webStateKey : String
+//Egena error meddelande
+struct APIErrorResponse: Decodable {
+    let error: String
 }
 
 
-
-struct PasswordManager : Codable {
-    let website : String
-    let password : String
-    let username : String
-    let userId : String
-}
-
-
-class AzureFunctions {
-    //Kan användas nu lokalt nu under utveckligen, sen när azure har det blir det fråga om user session och koppla det så
-    let baseURI = "https://5e4a-31-40-213-50.ngrok-free.app/api/"
-    private func encodeToJSON<T:Codable>(_ object: T) throws -> Data {
-        return try JSONEncoder().encode(object)
-    }
+enum NetworkError: Error, LocalizedError {
+    case badURL
+    case requestFailed(Error)
+    case invalidResponse
+    case decodingError(Error)
+    case statusCode(Int)
+    case custom(message: String)
     
-    private func decodeFromJSON<T:Codable>(_ jsonData: Data) throws -> T {
-        return try JSONDecoder().decode(T.self, from: jsonData)
-    }
-    
-    private func setWebsiteHeader(inUrl: URL, httpMethod: String) -> URLRequest {
-        var req = URLRequest(url: inUrl)
-        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpMethod = httpMethod
-        return req
-    }
-    //Kolla responsen
-    private func okResponse(){
-        
-    }
-    public func getWebstate(webStateKey: StateKey) async{
-        guard let url = URL(string: baseURI + "webstate") else { return }
-        
-        do {
-            var request = setWebsiteHeader(inUrl: url, httpMethod: "POST")
-            request.httpBody = try encodeToJSON(webStateKey)
-            
-            let (data, response ) = try await URLSession.shared.data(for: request)
-            let convertdata = try JSONDecoder().decode(WebState.self, from: data)
-            print(convertdata)
-            
-        } catch {
-            print(error)
-        }
-        
-    }
-    public func addToPasswordManager(input: PasswordManager) async{
-        guard let url = URL(string: baseURI + "addObjectPasswordManager") else { return }
-        
-        do {
-            var request = setWebsiteHeader(inUrl: url, httpMethod: "POST")
-            request.httpBody = try encodeToJSON(input)
-            
-            let (data, _ ) = try await URLSession.shared.data(for: request)
-            let convertdata = try JSONDecoder().decode(PasswordManager.self, from: data)
-            print(convertdata)
-            
-        } catch {
-            print(error)
-        }
-        
-    }
-    
-    public func updateObjectPasswordManager(input: PasswordManager) async{
-        guard let url = URL(string: baseURI + "updateObjectPasswordManager") else { return }
-        return await objectToPasswordManager(inUrl: url, method: "PATCH", input: input)
-        
-    }
-    private func objectToPasswordManager(inUrl: URL, method:String, input: PasswordManager ) async {
-        do {
-            var request = setWebsiteHeader(inUrl: inUrl, httpMethod: method)
-            request.httpBody = try encodeToJSON(input)
-            
-            let (data, _ ) = try await URLSession.shared.data(for: request)
-            let convertdata = try JSONDecoder().decode(PasswordManager.self, from: data)
-            print(convertdata)
-            
-        } catch {
-            print(error)
+    var errorDescription: String?{
+        switch self {
+        case .badURL: return "Invalid URL"
+        case .requestFailed(let err): return "Request failed:  \(err.localizedDescription)"
+        case .invalidResponse: return "Invalid response from server"
+        case .decodingError(let err): return "Failed to decode: \(err.localizedDescription)"
+        case .statusCode(let code): return "Server returned error code \(code)"
+        case .custom(let message): return message
         }
     }
-    public func deleteObjectPasswordManager(input: PasswordManager) async{
-        guard let url = URL(string: baseURI + "deleteObjectPasswordManager") else { return }
-         return await objectToPasswordManager(inUrl: url, method: "POST", input: input)
-        
-    }
-    
-    public func getAllWebstate() async{
-        guard let url = URL(string: baseURI + "getwebstate") else { return }
-        
-        do {
-            var request = URLRequest(url: url)
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpMethod = "GET"
-           
-            let (data, response) = try await URLSession.shared.data(for: request)
-            
-            //let ss = try JSONSerialization.data(withJSONObject: data)
-            //print(ss)
-            print(data)
-            print(response)
-            
-        } catch {
-            print(error)
-        }
-        
-    }
-    
 }
 
+protocol ApiRequest {
+    associatedtype RequestBody: Encodable
+    associatedtype Response: Decodable
+    
+    var endpoint: String { get }
+    var method: HTTPMethod { get }
+    var body: RequestBody? { get }
+    var requireAuth: Bool { get }
+}
 
-func testApi()async{
-    let api = AzureFunctions()
-    let d = StateKey(webStateKey: "67d042419b97d88fcfb71237")
+class AzureFunctionsApi {
+    private let baseURI: String = "https://5e4a-31-40-213-50.ngrok-free.app/api/"
+    private var session: URLSession = URLSession.shared
+    //Om token och entraID behövs sen
+    private let tokenProvider:  () -> String? = { nil }
     
-    await api.getWebstate(webStateKey: d)
-    //await api.getAllWebstate()
+    func send<T: ApiRequest>(_ request: T) async -> Result<T.Response, NetworkError> {
+        
+        do {
+            let urlRequest = try setRequest(requestSetup: request)
+            let (data, response) = try await session.data(for: urlRequest)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return .failure(.invalidResponse)
+            }
+            guard (200..<300).contains(httpResponse.statusCode) else {
+                if let errorResponse = try? JSONDecoder().decode(APIErrorResponse.self, from: data) {
+                    return .failure(.custom(message: errorResponse.error))
+                } else {
+                    return .failure(.statusCode(httpResponse.statusCode))
+                }
+            }
+            
+            let decoded = try JSONDecoder().decode(T.Response.self, from: data)
+            return .success(decoded)
+            
+        } catch let decodingError as DecodingError {
+            return .failure(.decodingError(decodingError))
+            
+        } catch {
+            return .failure(.requestFailed(error))
+        }
+    }
     
+    private func setRequest<T: ApiRequest>(requestSetup: T) throws -> URLRequest {
+        guard let url = URL(string: baseURI + requestSetup.endpoint) else {
+            throw NetworkError.badURL
+        }
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = requestSetup.method.rawValue
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        if let body = requestSetup.body {
+            urlRequest.httpBody = try JSONEncoder().encode(body)
+        }
+        //Lägg till token på request
+        if requestSetup.requireAuth, let token = tokenProvider() {
+            urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        return urlRequest
+    }
 }

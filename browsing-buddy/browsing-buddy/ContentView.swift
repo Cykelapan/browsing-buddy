@@ -171,23 +171,10 @@ struct ContentView: View {
     
     // äger knappen
     private func handleButtonTap(button: UIButtonData) async {
-        //TODO: HITTA TILLBAKA TILL KNAPPAR snygga till detta
        
-        let response = await PreEngine.shared.buttonAction(button:button, webViewController: webViewController!)
-        switch response {
-        case .failiure(let d):
-            print(d)
-            
-        case .sucsses(let state):
-            webViewController!.addActions(state.webCommands)
-            currentButtons = state.uiButtons
-          
-        }
-
-        
-        
+        let newButtons = await PreEngine.shared.buttonAction(button:button, webViewController: webViewController!)
         //let newButtons = orchestrator(key: button.key, webViewController: webViewController)
-        //currentButtons = newButtons
+        currentButtons = newButtons
     }
 }
 
