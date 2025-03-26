@@ -47,6 +47,10 @@ struct TESTVIEW: View {
         NavigationStack {
             VStack{
                 Form {
+                    Section("Hemsidor") {
+                        FavoriteWebsitesView(selectedFavorites: $selectedFavorites, avalibleWebsites: $avalibleWebsites).padding()
+                        
+                    }
                     Section("Kopplade konton") {
                         AccountListView(accounts: $accounts)
                     }
@@ -58,7 +62,7 @@ struct TESTVIEW: View {
                         }
                         Text("Example på hur texten blir").font(.system(size: fontSize))
                     }
-                    Section("OTHER"){
+                    Section("Annat"){
                         Toggle("Uppläsning av text", isOn: $textToSpeech)
                         HStack {
                             Picker("Välj språk ", selection: $selectedLang) {
@@ -68,8 +72,9 @@ struct TESTVIEW: View {
                             }
                         }
                     }
+                    
+                    
                 }
-                FavoriteWebsitesView(selectedFavorites: $selectedFavorites, avalibleWebsites: $avalibleWebsites).padding()
             }
         }.onAppear(perform: {
             Task{
@@ -92,47 +97,50 @@ struct FavoriteWebsitesView: View {
     @Binding  var avalibleWebsites: [UIButtonData]
     
     var body: some View {
-        HStack {
-            VStack{
+        HStack(alignment: .top) {
+            VStack(alignment: .leading) {
                 Text("Valda hemsidor").bold()
-                List {
-                    ForEach(selectedFavorites, id: \.self) { favorite in
-                        HStack {
-                            Text(favorite.buttonText)
-                            Text(favorite.nextStateKey)
-                      
-                            Spacer()
-                        }.padding()
-                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.green.opacity(0.1)))
-                        .onTapGesture {
-                            removeFromFavorites(favorite)
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        ForEach(selectedFavorites, id: \.self) { favorite in
+                            HStack {
+                                Text(favorite.buttonText)
+                                Spacer()
+                            }
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.green.opacity(0.1)))
+                            .onTapGesture {
+                                removeFromFavorites(favorite)
+                            }
                         }
-                        
                     }
                 }
-                .scrollContentBackground(.hidden)
             }
+            .frame(maxWidth: .infinity)
             
-            VStack{
-                Text("Tillgänliga hemsidor").bold()
-                List {
-                    ForEach(avalibleWebsites, id: \.self) { avalible in
-                        HStack {
-                            Text(avalible.buttonText)
-                            Spacer()
-                        }.padding()
+            VStack(alignment: .leading) {
+                Text("Tillgängliga hemsidor").bold()
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        ForEach(avalibleWebsites, id: \.self) { avalible in
+                            HStack {
+                                Text(avalible.buttonText)
+                                Spacer()
+                            }
+                            .padding()
                             .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue.opacity(0.1)))
-                        .onTapGesture {
-                            moveToFavorites(avalible)
+                            .onTapGesture {
+                                moveToFavorites(avalible)
+                            }
                         }
-                        
                     }
-                   
                 }
-                .scrollContentBackground(.hidden)
             }
-        }.padding()
+            .frame(maxWidth: .infinity)
+        }
+        .frame(height: 350)
     }
+    
     private func moveToFavorites(_ data : UIButtonData) {
         guard let index = avalibleWebsites.firstIndex(of: data) else { return }
         avalibleWebsites.remove(at: index)
