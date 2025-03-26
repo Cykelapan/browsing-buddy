@@ -103,7 +103,7 @@ struct ContentView: View {
                         }
                     }
                 }
-        .alert("Event är tillagt i din kalender", isPresented: $showSuccessPopup) {
+        .alert("Aktiviteter är inlagda i din kalender", isPresented: $showSuccessPopup) {
             Button("OK", role: .cancel) { }
         }
             }
@@ -173,6 +173,19 @@ struct ContentView: View {
     private func handleButtonTap(button: UIButtonData) async {
        
         let newButtons = await PreEngine.shared.buttonAction(button:button, webViewController: webViewController!)
+        let response = await PreEngine.shared.buttonAction(button:button, webViewController: webViewController!)
+        switch response {
+        case .failiure(let d):
+            print(d)
+            
+        case .sucsses(let state):
+            webViewController!.addActions(state.webCommands) {
+                currentButtons = state.uiButtons
+            }
+        }
+
+        
+        
         //let newButtons = orchestrator(key: button.key, webViewController: webViewController)
         currentButtons = newButtons
     }
