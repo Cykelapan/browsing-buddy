@@ -103,7 +103,7 @@ struct ContentView: View {
                         }
                     }
                 }
-        .alert("Event är tillagt i din kalender", isPresented: $showSuccessPopup) {
+        .alert("Aktiviteter är inlagda i din kalender", isPresented: $showSuccessPopup) {
             Button("OK", role: .cancel) { }
         }
             }
@@ -179,9 +179,10 @@ struct ContentView: View {
             print(d)
             
         case .sucsses(let state):
-            webViewController!.addActions(state.webCommands)
-            currentButtons = state.uiButtons
-          
+            webViewController!.addActions(state.webCommands) {
+                // 💥 Only called when engine has finished all actions
+                currentButtons = state.uiButtons
+            }
         }
 
         
