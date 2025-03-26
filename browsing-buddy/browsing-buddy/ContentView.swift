@@ -174,15 +174,6 @@ struct ContentView: View {
        
         let newButtons = await PreEngine.shared.buttonAction(button:button, webViewController: webViewController!)
         let response = await PreEngine.shared.buttonAction(button:button, webViewController: webViewController!)
-        switch response {
-        case .failiure(let d):
-            print(d)
-            
-        case .sucsses(let state):
-            webViewController!.addActions(state.webCommands) {
-                currentButtons = state.uiButtons
-            }
-        }
 
         
         
