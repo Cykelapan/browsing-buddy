@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+import SwiftUI
 //DB connection
 //Engine connection
 //Button factory
@@ -19,21 +19,19 @@ class PreEngine {
     //private let stateButtons = nil
     private init() {}
     
- 
-    public func buttonAction(button: UIButtonData, webViewController: WebViewController) async -> [UIButtonData] {
-        //Get data based on button pressed, collect data and send it back into Engine and buttons
-        //TODO: fix return type and try to make it somewhat safe
+    public func buttonAction(button: UIButtonData, webViewController: WebViewController, updateButtons: @escaping ([UIButtonData]) -> Void ) async {
         let request = NextWebstateRequest(body: button)
         let result = await api.send(request)
+
         switch result {
-            
         case .success(let responseData):
-            await webViewController.addActions( responseData.webCommands)
-            return responseData.uiButtons
-            
+            await webViewController.addActions(responseData.webCommands){
+                updateButtons(responseData.uiButtons)
+            }
+
         case .failure(let error):
-            print(error)
-            return []
+            //TODO: find and backuplist when it do not work
+            print("Error:", error.localizedDescription)
         }
     }
 }
