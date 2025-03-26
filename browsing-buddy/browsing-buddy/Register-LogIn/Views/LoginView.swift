@@ -48,6 +48,7 @@ struct LoginView: View {
             .padding(.horizontal)
             .padding(.top, 20)
         }
+        .onAppear(perform: {model.cleanData()})
         .navigationTitle("Logga in")
         .navigationBarTitleDisplayMode(.inline)
     }

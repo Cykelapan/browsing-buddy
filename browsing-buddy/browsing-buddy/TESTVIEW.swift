@@ -28,38 +28,29 @@ class AccountsPasswordManager: Identifiable {
 //https://www.swiftanytime.com/blog/form-in-swiftui
 struct TESTVIEW: View {
     @State private var fontSize: CGFloat = 15
-    @State private var firstName: String = ""
-    @State private var lastName: String = ""
-    @State private var date = Date()
     @State private var textToSpeech : Bool = false
+    @State private var translation : Bool = false
     var lang = ["Svenska", "Finska", "Norska", "Danska"]
     @State private var selectedLang : String = "Svenska"
     @State private var singleSelectionAccounts: UUID? = nil
     
     @State var accounts = [
-        AccountsPasswordManager(websiteName: "1177.se", websiteUrl: "https://1177.se", username: "user1177", password: "p@ssw0rd1234"),
+        AccountsPasswordManager(websiteName: "1177", websiteUrl: "https://1177.se", username: "user1177", password: "p@ssw0rd1234"),
         AccountsPasswordManager(websiteName: "Figma.com", websiteUrl: "https://www.figma.com", username: "figmaUser2025", password: "figmaPass@567"),
         AccountsPasswordManager(websiteName: "jlt.se", websiteUrl: "https://www.jlt.se", username: "jltUser007", password: "jltSecure!2025")
     ]
+    @State private var selectedFavorites: [UIButtonData] = []
+    @State private var avalibleWebsites: [UIButtonData] =  []
+    private var api = AzureFunctionsApi()
     
     var body: some View {
         NavigationStack {
             VStack{
-                Form{
-                    Section("Personligt") {
-                        TextField("First Name", text: $firstName)
-                        TextField("Last Name", text: $lastName)
-                        
-                        
-                        DatePicker(
-                            "Födelsedatum",
-                            selection: $date,
-                            displayedComponents: [.date]
-                        )
-                    }
+                Form {
                     Section("Kopplade konton") {
                         AccountListView(accounts: $accounts)
                     }
+                    
                     
                     Section("Tecken strolek \(Int(fontSize))") {
                         Slider(value: $fontSize, in: 15...40, step: 1) {
@@ -74,26 +65,90 @@ struct TESTVIEW: View {
                                 ForEach(lang, id: \.self){ i in
                                     Text(i)
                                 }
-                                
-                                
                             }
-                            
                         }
                     }
                 }
+                FavoriteWebsitesView(selectedFavorites: $selectedFavorites, avalibleWebsites: $avalibleWebsites).padding()
             }
-        }
-        
+        }.onAppear(perform: {
+            Task{
+                let request = GetAllInitialWebstateRequest()
+                let result = await api.send(request)
+                switch result {
+                case.success(let data):
+                    avalibleWebsites = data
+                case .failure(let err):
+                    print(err)
+                }
+                
+            }
+        })
+    }
+}
+
+struct FavoriteWebsitesView: View {
+    @Binding  var selectedFavorites: [UIButtonData]
+    @Binding  var avalibleWebsites: [UIButtonData]
+    
+    var body: some View {
+        HStack {
+            VStack{
+                Text("Valda hemsidor").bold()
+                List {
+                    ForEach(selectedFavorites, id: \.self) { favorite in
+                        HStack {
+                            Text(favorite.buttonText)
+                            Text(favorite.nextStateKey)
+                      
+                            Spacer()
+                        }.padding()
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.green.opacity(0.1)))
+                        .onTapGesture {
+                            removeFromFavorites(favorite)
+                        }
+                        
+                    }
+                }
+                .scrollContentBackground(.hidden)
+            }
+            
+            VStack{
+                Text("Tillgänliga hemsidor").bold()
+                List {
+                    ForEach(avalibleWebsites, id: \.self) { avalible in
+                        HStack {
+                            Text(avalible.buttonText)
+                            Spacer()
+                        }.padding()
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.blue.opacity(0.1)))
+                        .onTapGesture {
+                            moveToFavorites(avalible)
+                        }
+                        
+                    }
+                   
+                }
+                .scrollContentBackground(.hidden)
+            }
+        }.padding()
+    }
+    private func moveToFavorites(_ data : UIButtonData) {
+        guard let index = avalibleWebsites.firstIndex(of: data) else { return }
+        avalibleWebsites.remove(at: index)
+        selectedFavorites.append(data)
+    }
+
+    private func removeFromFavorites(_ data: UIButtonData) {
+        guard let index = selectedFavorites.firstIndex(of: data) else { return }
+        selectedFavorites.remove(at: index)
+        avalibleWebsites.append(data)
     }
 }
 
 struct AccountListView: View {
     @Binding var accounts : [AccountsPasswordManager]
-     /*@State var accounts = [
-        AccountsPasswordManager(websiteName: "1177.se", websiteUrl: "https://1177.se", username: "user1177", password: "p@ssw0rd1234"),
-        AccountsPasswordManager(websiteName: "Figma.com", websiteUrl: "https://www.figma.com", username: "figmaUser2025", password: "figmaPass@567"),
-        AccountsPasswordManager(websiteName: "jlt.se", websiteUrl: "https://www.jlt.se", username: "jltUser007", password: "jltSecure!2025")
-    ]*/
+     
     var body: some View {
             List {
                 ForEach(accounts){ account in
@@ -153,4 +208,21 @@ struct EditAccountView: View {
 }
 #Preview {
     TESTVIEW()
+    //FavoriteWebsitesView()
 }
+
+
+/*
+ Section("Personligt") {
+     TextField("First Name", text: $firstName)
+     TextField("Last Name", text: $lastName)
+     
+     
+     DatePicker(
+         "Födelsedatum",
+         selection: $date,
+         displayedComponents: [.date]
+     )
+ }
+ 
+ */

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct UIButtonData : Codable {
+struct UIButtonData : Codable, Hashable {
     let buttonText : String
     let nextStateKey : String
     

@@ -33,32 +33,8 @@ struct UserProfile: Codable {
     var favoriteButtons: [UIButtonData]
 
     // Example initializer
-    init(
-        userId: String,
-        email: String,
-        password: String,
-        textSize: Int = 36,
-        mainColor: Color = Color.blue,
-        favoriteColor: Color = Color.red,
-        favoriteButtons: [UIButtonData] =
-        [
-            //TODO: hämta intial state knappar
-            UIButtonData(buttonText: "Kommunen", nextStateKey: "67d4dba68c54d4af6dcadbba"),
-            //UIButtonData(buttonText: "Google", nextStateKey: "67d85394b58290e926e20d4d"),
-            //UIButtonData(buttonText: "Figma", nextStateKey: "67d806f2b58290e926e20d30"),
-            //UIButtonData(buttonText: "SJ", nextStateKey: "67d81a7db58290e926e20d3c"),
-            //UIButtonData(buttonText: "Frågor", nextStateKey: "67d83702b58290e926e20d45")
-            
-        ]
-    ) {
-        self.userId = userId
-        self.email = email
-        self.password = password
-        self.textSize = textSize
-        self.mainColor = ColorData(color: mainColor) // Wrap Color
-        self.favoriteColor = ColorData(color: favoriteColor) // Wrap Color
-        self.favoriteButtons = favoriteButtons
-    }
+   
+    
 }
 
 struct ColorData: Codable {
@@ -82,6 +58,66 @@ struct ColorData: Codable {
         Color(red: red, green: green, blue: blue, opacity: opacity)
     }
 }
+
+
+
+func createUserProfileFromData(userData: UserData, userSettings: UserSettings) -> UserProfile {
+    return UserProfile(userId: userData._id,
+                       email: userData.email,
+                       password: userData.passwordApp,
+                       textSize: userSettings.textSize,
+                       mainColor: ColorData(color: Color.blue),
+                       favoriteColor: ColorData(color: Color.red),
+                       favoriteButtons: userSettings.favoriteWebsites )
+}
+
+func createUserProfileFrom(userData: UserData,
+                       textSize: Int = 36,
+                       mainColor: Color = Color.blue,
+                       favoriteColor: Color = Color.red,
+                       favoriteButtons: [UIButtonData] =
+                       [
+                           //TODO: hämta intial state knappar
+                           UIButtonData(buttonText: "Kommunen", nextStateKey: "67d4dba68c54d4af6dcadbba"),
+                           UIButtonData(buttonText: "1177", nextStateKey: "67e453ab63361512f537556f"),
+                           UIButtonData(buttonText: "FASS", nextStateKey: "67e44ee363361512f537556b")
+                           //UIButtonData(buttonText: "Google", nextStateKey: "67d85394b58290e926e20d4d"),
+                           //UIButtonData(buttonText: "Figma", nextStateKey: "67d806f2b58290e926e20d30"),
+                           //UIButtonData(buttonText: "SJ", nextStateKey: "67d81a7db58290e926e20d3c"),
+                           //UIButtonData(buttonText: "Frågor", nextStateKey: "67d83702b58290e926e20d45")
+                           
+                       ]) -> UserProfile {
+                           
+                           return UserProfile(userId: userData._id,
+                                              email: userData.email,
+                                              password: userData.passwordApp,
+                                              textSize: textSize,
+                                              mainColor: ColorData(color: mainColor),
+                                              favoriteColor: ColorData(color: favoriteColor),
+                                              favoriteButtons: favoriteButtons)
+}
+
+func createUserProfile(userId: String,
+                       email: String,
+                       password: String,
+                       textSize: Int = 36,
+                       mainColor: Color = Color.blue,
+                       favoriteColor: Color = Color.red,
+                       favoriteButtons: [UIButtonData] =
+                       [
+                           //TODO: hämta intial state knappar
+                           UIButtonData(buttonText: "Kommunen", nextStateKey: "67d4dba68c54d4af6dcadbba"),
+                           UIButtonData(buttonText: "1177", nextStateKey: "67e453ab63361512f537556f"),
+                           UIButtonData(buttonText: "FASS", nextStateKey: "67e44ee363361512f537556b")
+                           //UIButtonData(buttonText: "Google", nextStateKey: "67d85394b58290e926e20d4d"),
+                           //UIButtonData(buttonText: "Figma", nextStateKey: "67d806f2b58290e926e20d30"),
+                           //UIButtonData(buttonText: "SJ", nextStateKey: "67d81a7db58290e926e20d3c"),
+                           //UIButtonData(buttonText: "Frågor", nextStateKey: "67d83702b58290e926e20d45")
+                           
+                       ]) -> UserProfile {
+                           return UserProfile(userId: userId, email: email, password: password, textSize: textSize, mainColor: ColorData(color: mainColor), favoriteColor: ColorData(color: favoriteColor), favoriteButtons: favoriteButtons)
+}
+
 
 class UserSession: ObservableObject {
     @Published var currentUser: UserProfile
