@@ -47,24 +47,6 @@ struct LoginView: View {
             }
             .padding(.horizontal)
             .padding(.top, 20)
-
-            Button(action: {
-                Task {
-                    userSession.currentUser = UserProfile(userId: "respsonseData._id", email: "aa@aa.aa", password: "aa")
-                  
-                   
-                }
-            }) {
-                Text("Dev login")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .font(.title3)
-            }
-            .padding(.horizontal)
-            .padding(.top, 20)
         }
         .navigationTitle("Logga in")
         .navigationBarTitleDisplayMode(.inline)
@@ -80,3 +62,21 @@ struct LoginView: View {
         //print("User registered: \(newUser)")
     }
 }
+/*
+ Button(action: {
+     Task {
+         userSession.currentUser = UserProfile(userId: "respsonseData._id", email: "aa@aa.aa", password: "aa")
+     }
+ }) {
+     Text("Dev login")
+         .frame(maxWidth: .infinity)
+         .padding()
+         .background(Color.blue)
+         .foregroundColor(.white)
+         .cornerRadius(12)
+         .font(.title3)
+ }
+ .padding(.horizontal)
+ .padding(.top, 20)
+ 
+ */

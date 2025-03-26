@@ -41,30 +41,38 @@ struct JSElementKeys: Codable {
     let elementTag : String?
     let cssSelector : String?
     let xPath : String?
-    //let cssSelector : String?
 }
 
-/*
- Kan justera den mer och göra den mindre
- 
- Men siktar på att vi ska kunna läsa den sen i jsonFilerna
- 
- */
+
 struct WebAction : Codable{
-    //function to call, will also take out the key from JSElementKeys
-    let websiteUrl : String //bara url med path
+    // The full URL (including path) where the action should be performed.
+    let websiteUrl : String
+    
+    // Defines which function in the engine to call
     let functionToCall : FunctionToCall
+    
+    
+    // Defines the source of the value to be injected.
+    //    - If `.NOTHING`, `valueToInject` will be used.
+    //    - Otherwise, the value is extracted from `UserSession`.
     let extractFromUser : ExtractFromUser
+    let valueToInject: String?
+    
+    // Whether the action requires access to the calendar.
     let accessCalendar : Bool?
+    
+    // Title displayed in the pop-up UI.
+    // - descriptionMessage is what will be shown inside the pop-up window, is a string sufficent here?
     let informationTitle : String
-    // Gör om det till ett enum på en gång
-    
-    
-   
-    let willNavigate : Bool
-    let jsElementKeys : JSElementKeys
-    //Dont need keys for this
     let descriptionMessage : String
+    
+    // If the action will trigger a page navigation
+    let willNavigate : Bool
+    
+    // Key set representing potential JS DOM targets
+    let jsElementKeys : JSElementKeys
+    
+    // The specific key (resolved from `functionToCall + jsElementKeys`) to use in JS injection.
     let jsElementKey : String
     
     init(from decoder: any Decoder) throws {
@@ -79,6 +87,7 @@ struct WebAction : Codable{
             self.informationTitle = try container.decode(String?.self, forKey: .informationTitle) ?? "Information"
             self.websiteUrl = try container.decode(String.self, forKey: .websiteUrl)
             self.descriptionMessage = try container.decodeIfPresent(String.self, forKey: .descriptionMessage) ?? "Information"
+            self.valueToInject = try container.decodeIfPresent(String.self, forKey: .valueToInject) ?? nil
             
             // Kan göras egna codingkeys
             //https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
@@ -94,8 +103,6 @@ struct WebAction : Codable{
             print(error)
             throw error
         }
-      
-        //TODO: fixa så det väljer nyckel baserat på det som ska användas och blir säkert, är för lätt att skriva fel med strings
     }
 }
 
