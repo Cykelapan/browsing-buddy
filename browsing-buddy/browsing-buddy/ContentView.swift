@@ -180,7 +180,6 @@ struct ContentView: View {
             
         case .sucsses(let state):
             webViewController!.addActions(state.webCommands) {
-                // 💥 Only called when engine has finished all actions
                 currentButtons = state.uiButtons
             }
         }
