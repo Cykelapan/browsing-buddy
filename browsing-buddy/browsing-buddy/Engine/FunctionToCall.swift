@@ -83,9 +83,11 @@ enum FunctionToCall : String, Codable {
     case CLICK_ELEMENT_CLASS_HIGHLIGHT = "CLICK_ELEMENT_CLASS_HIGHLIGHT"
     case CLICK_ELEMENT_XPATH_HIGHLIGHT = "CLICK_ELEMENT_XPATH_HIGHLIGHT"
     
+    case WAIT_FOR_MANUAL_NAVIGATION = "WAIT_FOR_MANUAL_NAVIGATION"
+    
     func getValue(jsKey: JSElementKeys) -> String?{
         switch self {
-        case .INPUT_REQUEST, .SHOW_MESSAGE, .SHOW_EXTRACTED_MESSAGE , .NAVIGATE_WEB:
+        case .INPUT_REQUEST, .SHOW_MESSAGE, .SHOW_EXTRACTED_MESSAGE , .NAVIGATE_WEB, .WAIT_FOR_MANUAL_NAVIGATION:
             return "Kvittar"
             
         // Kan vändas på beronde på nyckel som finns
