@@ -29,3 +29,4 @@ struct RegisterRequest: ApiRequest {
         self.body = user
     }
 }
+

@@ -42,8 +42,8 @@ struct UserSettings: Codable {
     let _id : String
     let textSize : Int
     let languageToUse : String
-    let textToSpeechActive : Bool
-    let translationActive : Bool
+    //let textToSpeechActive : Bool
+    //let translationActive : Bool
     let favoriteWebsites : [UIButtonData]
     let userId : String
 }
