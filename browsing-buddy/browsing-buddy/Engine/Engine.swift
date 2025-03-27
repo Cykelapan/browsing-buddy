@@ -20,6 +20,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     var userSession: UserSession
     
     private var onQueueComplete: (() -> Void)?
+    private var lastPageURL: URL?
     
     var onRequestUserInput: ((String, @escaping (String) -> Void) -> Void)?
     var onRequestShowMessage: ((String, String, Bool, @escaping () -> Void) -> Void)?
@@ -37,6 +38,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         
         let contentController = WKUserContentController()
         contentController.add(self, name: "callbackHandler")
+        // För errors
+        contentController.add(self, name: "errorHandler")
         
         let config = WKWebViewConfiguration()
         config.userContentController = contentController
@@ -58,7 +61,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     }
     
     
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+    /*func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         if message.name == "callbackHandler" {
             print("JavaScript says: \(message.body)")
             
@@ -79,7 +82,48 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 processNextAction()
             }
         }
+    }*/
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        switch message.name {
+        
+        case "callbackHandler":
+            print("JavaScript says (callbackHandler): \(message.body)")
+
+            if let messageBody = message.body as? String {
+                if messageBody.starts(with: "ExtractedText:") {
+                    let extracted = messageBody.replacingOccurrences(of: "ExtractedText:", with: "")
+                    self.extractedText = extracted
+                    // print("Extracted text saved: \(self.extractedText)") för debugging
+                } else if messageBody.starts(with: "ExtractedList:") {
+                    let extracted = messageBody.replacingOccurrences(of: "ExtractedList:", with: "")
+                    self.extractedText = extracted
+                    // print("Extracted list saved: \(self.extractedText)")
+                } else {
+                    print("Unrecognized callbackHandler message: \(messageBody)")
+                }
+            }
+
+            if !isNavigating {
+                processNextAction()
+            }
+
+        // Felmedellanden
+        case "errorHandler":
+            if let errorMessage = message.body as? String {
+                print("JavaScript errorHandlöer says: \(errorMessage)")
+                // Optionally: Notify user, log error, skip action, etc.
+            }
+            
+            if !isNavigating {
+                processNextAction()
+            }
+
+        default:
+            print("No header added: \(message.name)")
+        }
     }
+
     
     func startProcessingQueue() {
         guard !isProcessing, !actionQueue.isEmpty else { return }
@@ -169,6 +213,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "CLICK_ELEMENT_XPATH_HIGHLIGHT":
             clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
             
+        //ny otestad
+        case "WAIT_FOR_MANUAL_NAVIGATION":
+            waitForWebChange()
+            
         default:
             print("Unknown action: \(action.functionToCall)")
             processNextAction()
@@ -176,9 +224,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     }
     
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        print("Page Loaded!!")
+
         if isNavigating {
-            isNavigating = false
+            if webView.url != lastPageURL {
+                isNavigating = false
+                processNextAction()
+            } else {
+                print("Only refresh")
+            }
+            return // vänta på navigation
         }
         processNextAction()
     }
@@ -656,8 +710,33 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     private func clickElementByXPath(xpath: String, willNavigate navigate: Bool) {
         isNavigating = navigate
         
-        
         let js = """
+        (function() {
+            var maxWaitTime = 10000;
+            var intervalTime = 500;
+            var elapsed = 0;
+
+            function waitForElement(xpath) {
+                var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                
+                if (element) {
+                    console.log('Element found using XPath, clicking...');
+                    element.click();
+                    window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element with XPath: ' + xpath);
+                } else if (elapsed >= maxWaitTime) {
+                    console.log('Timeout: Element not found within max wait time');
+                    window.webkit.messageHandlers.errorHandler.postMessage('FAILED_TO_FIND_ELEMENT_WITH_XPATH: ' + xpath);
+                } else {
+                    elapsed += intervalTime;
+                    setTimeout(function() { waitForElement(xpath); }, intervalTime);
+                }
+            }
+
+            waitForElement('\(xpath)');
+        })();
+        """
+        
+        /*let js = """
         function waitForElement(xpath) {
             var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             if (element) {
@@ -678,7 +757,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 self.processNextAction()
             }
         }
-    }
+    }*/
     
     //klar
     private func clickElementByXPathHighlight(xpath: String, willNavigate navigate: Bool) {
@@ -737,6 +816,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 self.processNextAction()
             }
         }
+    }
+    
+    //ny otestad
+    private func waitForWebChange() {
+        lastPageURL = webView.url
+        isNavigating = true
+        print("Currrent URL: \(lastPageURL?.absoluteString ?? "empty")")
     }
     
 }
