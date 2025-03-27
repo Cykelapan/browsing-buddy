@@ -749,7 +749,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
         waitForElement('\(xpath)');
-        """
+        """*/
         
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
@@ -757,7 +757,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 self.processNextAction()
             }
         }
-    }*/
+    }
     
     //klar
     private func clickElementByXPathHighlight(xpath: String, willNavigate navigate: Bool) {
