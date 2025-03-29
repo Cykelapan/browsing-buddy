@@ -176,10 +176,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "INSERT_ELEMENT_CLASS":
             print("INSERT_ELEMENT_CLASS")
-            //fillElementByClass(className: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser )
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { //bara test
+            fillElementByClass(className: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser )
+            /*DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { //bara test
              self.fillElementByClass(className: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser )
-             }
+             }*/
             
         case "EXTRACT_LIST_BY_XPATH":
             print("EXTRACT_LIST_BY_XPATH")
@@ -491,7 +491,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     
     //klar Fungerar bättre med class om det e textfields
     private func fillElementByClass(className: String, willNavigate navigate: Bool, valueType: ExtractFromUser) {
-        let valueToInsert = valueType.getValue(session: userSession) //getValueForType(valueType: valueType)
+        isNavigating = navigate
+        let valueToInsert = valueType.getValue(session: userSession)
+        
+        // Escape single quotes in the value to prevent JS errors
+        let escapedValue = valueToInsert.replacingOccurrences(of: "'", with: "\\'")
         
         let js = """
         function waitForElementByClass(className, value) {
@@ -507,29 +511,31 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                     element.dispatchEvent(event);
                 });
 
-        var spaceEvent = new KeyboardEvent('keydown', {
-            bubbles: true,
-            cancelable: true,
-            key: ' ',   // Space key
-            code: 'Space',
-            view: window // Ensures event is dispatched properly
-        });
-                element.dispatchEvent(enterEvent);
+                var spaceEvent = new KeyboardEvent('keydown', {
+                    bubbles: true,
+                    cancelable: true,
+                    key: ' ',   // Space key
+                    code: 'Space',
+                    view: window // Ensures event is dispatched properly
+                });
+                element.dispatchEvent(spaceEvent);
 
-                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with class: ' + className + ' and valueType: ' + value + ' and simulated Enter key.');
+                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with class: ' + className + ' and value: ' + value + ' and simulated Space key.');
             } else {
                 console.log('Element not found by class, retrying...');
                 setTimeout(function() { waitForElementByClass(className, value); }, 500);
             }
         }
-        waitForElementByClass('\(className)', '\(valueToInsert)');
+        waitForElementByClass('\(className)', '\(escapedValue)');
         """
 
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript injection error: \(error.localizedDescription)")
             }
-            self.processNextAction()
+            if !self.isNavigating {
+                self.processNextAction()
+            }
         }
     }
     
