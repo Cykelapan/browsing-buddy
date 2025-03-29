@@ -1000,78 +1000,76 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         let escapedValue = searchText.replacingOccurrences(of: "'", with: "\\'")
         
         let js = """
-        function fillGoogleSearchBox(searchText) {
-            // Try multiple methods to find the search box
-            var searchBox = null;
-            
-            // Method 1: Try by name attribute (most reliable)
-            searchBox = document.querySelector('input[name="q"], textarea[name="q"]');
-            
-            // Method 2: Try by class name
-            if (!searchBox) {
-                searchBox = document.querySelector('.gLFyf');
-            }
-            
-            // Method 3: Try by ID
-            if (!searchBox) {
-                searchBox = document.getElementById('APjFqb');
-            }
-            
-            if (searchBox) {
-                console.log('Google search box found, filling search...');
-                searchBox.focus();
-                searchBox.value = searchText;
+            function fillGoogleSearchBox(searchText) {
+                // Try EVERY possible method to find the search input
+                var searchElements = [
+                    document.querySelector('input[name="q"]'),
+                    document.querySelector('textarea[name="q"]'),
+                    document.querySelector('.gLFyf'),
+                    document.getElementById('APjFqb'),
+                    document.querySelector('input[type="search"]'),
+                    document.querySelector('input[title="Sök"]'),
+                    document.querySelector('input[aria-label="Sök"]'),
+                    document.querySelector('textarea[aria-label="Sök"]')
+                ];
                 
-                // Trigger events to simulate user input
-                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
-                    var event = new Event(eventType, { bubbles: true });
-                    searchBox.dispatchEvent(event);
-                });
+                // Find first non-null element
+                var searchBox = null;
+                for (var i = 0; i < searchElements.length; i++) {
+                    if (searchElements[i]) {
+                        searchBox = searchElements[i];
+                        console.log("Found search box using method #" + (i+1));
+                        break;
+                    }
+                }
                 
-                // Simulate Enter key press to submit the search
-                var enterEvent = new KeyboardEvent('keydown', {
-                    bubbles: true,
-                    cancelable: true,
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    which: 13,
-                    view: window
-                });
-                searchBox.dispatchEvent(enterEvent);
-                
-                window.webkit.messageHandlers.callbackHandler.postMessage('Google search performed with text: ' + searchText);
-                return true;
-            } else {
-                window.webkit.messageHandlers.errorHandler.postMessage('Could not find Google search box');
-                return false;
-            }
-        }
-        
-        // If search box not found immediately, retry after a short delay
-        function attemptFill(attempt) {
-            if (attempt > 10) {
-                window.webkit.messageHandlers.errorHandler.postMessage('Google search box not found after 10 attempts');
-                return;
+                if (searchBox) {
+                    try {
+                        console.log('Google search box found, filling search...');
+                        searchBox.focus();
+                        searchBox.value = searchText;
+                        
+                        // Trigger events
+                        ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
+                            var event = new Event(eventType, { bubbles: true });
+                            searchBox.dispatchEvent(event);
+                        });
+                        
+                        // Form submission might be more reliable than Enter key
+                        var form = searchBox.closest('form');
+                        if (form) {
+                            form.submit();
+                        } else {
+                            // Fallback to Enter key
+                            var enterEvent = new KeyboardEvent('keydown', {
+                                bubbles: true,
+                                cancelable: true,
+                                key: 'Enter',
+                                code: 'Enter',
+                                keyCode: 13
+                            });
+                            searchBox.dispatchEvent(enterEvent);
+                        }
+                        
+                        window.webkit.messageHandlers.callbackHandler.postMessage('Google search performed with text: ' + searchText);
+                        return true;
+                    } catch (e) {
+                        window.webkit.messageHandlers.errorHandler.postMessage('Error interacting with search box: ' + e.message);
+                        return false;
+                    }
+                } else {
+                    window.webkit.messageHandlers.errorHandler.postMessage('Could not find Google search box using any method');
+                    return false;
+                }
             }
             
-            var success = fillGoogleSearchBox(searchText);
-            if (!success) {
-                console.log('Retrying... (attempt ' + attempt + '/10)');
-                setTimeout(function() { attemptFill(attempt + 1); }, 500);
-            }
-        }
-        
-        attemptFill(1);
-        """
+            fillGoogleSearchBox('\(escapedValue)');
+            """
         
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript error: \(error.localizedDescription)")
             }
-            // Don't process next action immediately since navigate=true
-            // Let the navigation delegate handle continuation
         }
     }
-    
 }
