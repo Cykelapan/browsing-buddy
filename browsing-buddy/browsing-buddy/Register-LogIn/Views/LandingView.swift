@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LandingPage: View {
+    @EnvironmentObject var userSession: UserSession
     @State private var setup = SetupModel()
     @State private var path = NavigationPath()
     
@@ -39,13 +40,18 @@ struct LandingPage: View {
                     model: $setup
                 )
                 .padding(.horizontal)
-
+                
+                CustomButton(text: "Dev login", color: Color.red, fontSize: 45, action: devLogin).padding(.horizontal)
                 Spacer()
             }
+            
             .navigationDestination(for: AppRouteSetup.self) { route in
                 route.view(path: $path, model: $setup)
             }
         }
+    }
+    func devLogin(){
+        userSession.currentUser = createUserProfile(userId: "67d5a5529f6dda8d51da627d", email: "aa@aa.aa", password: "aa")
     }
 }
 
