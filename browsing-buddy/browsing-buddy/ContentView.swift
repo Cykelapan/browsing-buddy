@@ -33,6 +33,7 @@ struct ContentView: View {
     @State private var currentButtons: [UIButtonData] = []
     @StateObject private var calendarManager = CalendarEventManager()
     @State private var showSuccessPopup = false
+    @State private var currentInputText = ""
     
     @State private var activePopup: PopupType? = nil
     private let speechManager = SpeechManager()
@@ -86,15 +87,21 @@ struct ContentView: View {
                             VStack {
                                 Text(prompt)
                                     .font(.headline)
-                                TextField("Skriv här...", text: .constant(""))
+                                
+                                TextField("Skriv här...", text: $currentInputText)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
                                     .padding()
+                                
                                 Button("Godkänn") {
-                                    onSubmit("Användarinput")
+                                    // Pass the actual user input to the callback
+                                    onSubmit(currentInputText)
                                     activePopup = nil
+                                    // Reset after submission
+                                    currentInputText = ""
                                 }
                             }
                             .padding()
+                            
                         case .message(let title, let text,let accessCalender, let onDismiss):
                             messagePopupView(title: title, text: text, accessCalendar: accessCalender, onDismiss: {
                                 onDismiss()
@@ -168,6 +175,8 @@ struct ContentView: View {
            }
            .padding()
        }
+    
+    
     
     // äger knappen
     private func handleButtonTap(button: UIButtonData) async {

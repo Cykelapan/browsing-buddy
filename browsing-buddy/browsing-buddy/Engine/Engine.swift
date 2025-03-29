@@ -124,10 +124,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         switch action.functionToCall.rawValue {
             
         case "INPUT_REQUEST":
-            // Fungerar inte än
-            onRequestUserInput?("Please enter search term") { userInput in
-                self.processNextAction()
-            }
+            print("Entered INPUT_REQUEST")
+            let promptText = action.descriptionMessage.isEmpty ? "Please enter information" : action.descriptionMessage
+            requestUserInput(prompt: promptText)
 
         case "SHOW_MESSAGE":
             print("Entered SHOW_MESSAGE")
@@ -976,22 +975,15 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
     }
-    private func requestUserInputAndSave(prompt: String, saveToVariable: String) {
-        onRequestUserInput?(prompt) { userInput in
-            // Store the input value in a JavaScript variable for later use
-            let escapedInput = userInput.replacingOccurrences(of: "'", with: "\\'")
-            let setVarJS = """
-            window.browsing_buddy_variables = window.browsing_buddy_variables || {};
-            window.browsing_buddy_variables['\(saveToVariable)'] = '\(escapedInput)';
-            console.log('Saved user input to variable: \(saveToVariable)');
-            """
+    private func requestUserInput(prompt: String) {
+        onRequestUserInput?(prompt) { [weak self] userInput in
+            guard let self = self else { return }
             
-            self.webView.evaluateJavaScript(setVarJS) { _, error in
-                if let error = error {
-                    print("Error saving variable: \(error.localizedDescription)")
-                }
-                self.processNextAction()
-            }
+            // Save the input to UserSession
+            self.userSession.userInput = userInput
+            print("Saved user input: \(userInput)")
+            
+            self.processNextAction()
         }
     }
     
