@@ -170,7 +170,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "INSERT_ELEMENT_XPATH":
             //print("INSERT_ELEMENT_XPATH")
             //fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) { //bara test
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
              }
             
@@ -203,6 +203,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "EXTRACT_BOOKED_TIMES_1177":
             extractBookedTimes1177(xpath: action.jsElementKey)
+            
+        case "INSERT_ELEMENT_ID":
+            fillElementById(id: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -527,6 +530,53 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
         waitForElementByClass('\(className)', '\(escapedValue)');
+        """
+
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+            }
+            if !self.isNavigating {
+                self.processNextAction()
+            }
+        }
+    }
+    
+    private func fillElementById(id: String, willNavigate navigate: Bool, valueType: ExtractFromUser) {
+        isNavigating = navigate
+        let valueToInsert = valueType.getValue(session: userSession)
+        
+        let escapedValue = valueToInsert.replacingOccurrences(of: "'", with: "\\'")
+        
+        let js = """
+        function waitForElementById(id, value) {
+            var element = document.getElementById(id);
+            if (element) {
+                console.log('Element found using ID, filling value...');
+                element.focus();
+                element.value = value;
+
+                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
+                    var event = new Event(eventType, { bubbles: true });
+                    element.dispatchEvent(event);
+                });
+
+                var spaceEvent = new KeyboardEvent('keydown', {
+                    bubbles: true,
+                    cancelable: true,
+                    key: ' ',   // Space key
+                    code: 'Space',
+                    view: window // Ensures event is dispatched properly
+                });
+                element.dispatchEvent(spaceEvent);
+
+                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with ID: ' + id + ' and value: ' + value);
+            } else {
+                console.log('Element not found by ID, retrying...');
+                setTimeout(function() { waitForElementById(id, value); }, 500);
+            }
+        }
+        waitForElementById('\(id)', '\(escapedValue)');
         """
 
         webView.evaluateJavaScript(js) { _, error in
