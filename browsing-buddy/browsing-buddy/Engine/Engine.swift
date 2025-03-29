@@ -125,8 +125,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "INPUT_REQUEST":
             print("Entered INPUT_REQUEST")
-            let titleText = action.informationTitle.isEmpty ? "Input Required" : action.informationTitle
-            let promptText = action.descriptionMessage.isEmpty ? "Please enter information" : action.descriptionMessage
+            let titleText = action.informationTitle.isEmpty ? "Information" : action.informationTitle
+            let promptText = action.descriptionMessage.isEmpty ? "" : action.descriptionMessage
             requestUserInput(title: titleText, prompt: promptText)
 
         case "SHOW_MESSAGE":
@@ -137,7 +137,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         
         case "SHOW_EXTRACTED_MESSAGE":
             print("SHOW_EXTRACTED_MESSAGE = ", self.extractedText)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) {
                 self.onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
                     self.extractedText = ""
                     self.processNextAction()
@@ -533,8 +533,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
-    //inte klar
-    private func fillElementByXPath(xpath: String, willNavigate navigate: Bool, valueType: ExtractFromUser) {
+    private func fillElementByXPathComplicated(id: String, willNavigate navigate: Bool, valueType: ExtractFromUser) {
+        
         let valueToInsert = valueType.getValue(session: userSession) // Extract value based on user session
 
         let js = """
@@ -604,125 +604,56 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 setTimeout(function() { waitForElementById(id, value); }, 500);
             }
         }
-        waitForElementById('\(xpath)', '\(valueToInsert)');
+        waitForElementById('\(id)', '\(valueToInsert)');
         """
-
         
-        /*let js = """
-        function waitForElementById(id, value) {
-            var element = document.getElementById(id);
-            
-            if (element) {
-                console.log('Element found using id:', id);
-
-                
-                if (element.offsetParent !== null && !element.disabled) {
-                    console.log('Element is visible and enabled. Filling value...');
-
-                    
-                    element.click();
-                    element.focus();
-
-                    
-                    element.value = value;
-
-                    
-                    element.dispatchEvent(new InputEvent('input', { bubbles: true }));
-
-                    
-                    ['change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
-                        var event = new Event(eventType, { bubbles: true });
-                        element.dispatchEvent(event);
-                    });
-
-                    // Simulate Enter keypress (optional, if needed)
-                    var enterEvent = new KeyboardEvent('keydown', {
-                        bubbles: true,
-                        cancelable: true,
-                        key: 'Enter',
-                        code: 'Enter',
-                        keyCode: 13,
-                        which: 13
-                    });
-                    element.dispatchEvent(enterEvent);
-
-                    window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with id: ' + id + ' and valueType: ' + value + ' and simulated Enter key.');
-                } else {
-                    console.log('Element found but not interactive (invisible or disabled), retrying...');
-                    setTimeout(function() { waitForElementById(id, value); }, 500);
-                }
-            } else {
-                console.log('Element not found by id:', id, 'retrying...');
-                setTimeout(function() { waitForElementById(id, value); }, 500);
-            }
-        }
-        waitForElementById('\(xpath)', '\(valueToInsert)');
-        """ */
-
-        /*let js = """
-        function waitForElementById(id, value) {
-            var element = document.getElementById(id);
-            if (element) {
-                console.log('Element found using id, filling value...');
-                element.focus();
-                element.value = value;
-
-                // Dispatch common events to mimic user input (for frameworks like React, Angular, etc.)
-                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
-                    var event = new Event(eventType, { bubbles: true });
-                    element.dispatchEvent(event);
-                });
-
-                var enterEvent = new KeyboardEvent('keydown', {
-                    bubbles: true,
-                    cancelable: true,
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    which: 13
-                });
-                element.dispatchEvent(enterEvent);
-
-                // Notify Swift that the element was filled successfully and Enter was pressed
-                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with id: ' + id + ' and valueType: ' + value + ' and simulated Enter key.');
-            } else {
-                console.log('Element not found by id, retrying...');
-                setTimeout(function() { waitForElementById(id, value); }, 500);
-            }
-        }
-        waitForElementById('\(xpath)', '\(valueToInsert)');
-        """*/
-
-        /*let js = """
-        function waitForElementById(id, value) {
-            var element = document.getElementById(id);
-            if (element) {
-                console.log('Element found using id, filling value...');
-                element.focus();
-                element.value = value;
-
-                // Dispatch common events to mimic user input (for frameworks like React, Angular, etc.)
-                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
-                    var event = new Event(eventType, { bubbles: true });
-                    element.dispatchEvent(event);
-                });
-
-                // Notify Swift that the element was filled successfully
-                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with id: ' + id + ' and valueType: ' + value);
-            } else {
-                console.log('Element not found by id, retrying...');
-                setTimeout(function() { waitForElementById(id, value); }, 500);
-            }
-        }
-        waitForElementById('\(xpath)', '\(valueToInsert)');
-        """*/
-
-        // Inject the JavaScript into the web view and handle potential errors
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript injection error: \(error.localizedDescription)")
             }
             self.processNextAction()
+        }
+    }
+    
+    //inte klar
+    private func fillElementByXPath(xpath: String, willNavigate navigate: Bool, valueType: ExtractFromUser) {
+        isNavigating = navigate
+        
+        let valueToInsert = valueType.getValue(session: userSession)
+        
+        let escapedValue = valueToInsert.replacingOccurrences(of: "'", with: "\\'")
+        
+        let js = """
+        function waitForElementByXPath(xpath, value) {
+            var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            var element = result.singleNodeValue;
+            
+            if (element) {
+                console.log('Element found using XPath, filling value...');
+                element.focus();
+                element.value = value;
+
+                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
+                    var event = new Event(eventType, { bubbles: true });
+                    element.dispatchEvent(event);
+                });
+
+                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with XPath: ' + xpath + ' and value: ' + value);
+            } else {
+                console.log('Element not found by XPath, retrying...');
+                setTimeout(function() { waitForElementByXPath(xpath, value); }, 500);
+            }
+        }
+        waitForElementByXPath('\(xpath)', '\(escapedValue)');
+        """
+
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+            }
+            if !self.isNavigating {
+                self.processNextAction()
+            }
         }
     }
     
