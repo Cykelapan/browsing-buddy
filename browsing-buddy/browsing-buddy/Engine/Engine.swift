@@ -60,30 +60,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         webView.navigationDelegate = self
     }
     
-    
-    /*func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if message.name == "callbackHandler" {
-            print("JavaScript says: \(message.body)")
-            
-            //Ta emot extracted
-            if let messageBody = message.body as? String {
-                if messageBody.starts(with: "ExtractedText:") {
-                    let extracted = messageBody.replacingOccurrences(of: "ExtractedText:", with: "")
-                    self.extractedText = extracted
-                    //print("Extracted text sparad: \(self.extractedText)") lämnar för debug
-                }
-                if messageBody.starts(with: "ExtractedList:") {
-                    let extracted = messageBody.replacingOccurrences(of: "ExtractedList:", with: "")
-                    self.extractedText = extracted
-                    //print("Extracted text sparad: \(self.extractedText)")
-                }
-            }
-            if !isNavigating {
-                processNextAction()
-            }
-        }
-    }*/
-    
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         switch message.name {
         
@@ -219,9 +195,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "CLICK_ELEMENT_XPATH_HIGHLIGHT":
             clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
             
-        //ny otestad
         case "WAIT_FOR_MANUAL_NAVIGATION":
             waitForWebChange()
+            
+        case "SCROLL_TO_ELEMENT_AND_SHOW_TEXT":
+            scrollToElementAndShowText(xpath: action.jsElementKey, explanationText: action.descriptionMessage)
+            
+        case "EXTRACT_BOOKED_TIMES_1177":
+            extractBookedTimes1177(xpath: action.jsElementKey)
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -380,7 +361,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
-    private func extractTextByXPath(xpath: String) {
+    private func extractBookedTimes1177(xpath: String) {
         let js = """
         (function() {
             console.log = (function(originalLog) {
@@ -439,11 +420,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         })();
         """
 
-
-
-
-
-        // ⏳ Delay before injecting JS (e.g. 2.5 seconds)
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
             self.webView.evaluateJavaScript(js) { _, error in
                 if let error = error {
@@ -456,71 +432,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
 
     
     //Klar
-    /*private func extractTextByXPath(xpath: String) {
+    private func extractTextByXPath(xpath: String) {
         
         let js = """
-        (function setupLoggingAndExtract() {
-            console.log = (function(originalLog) {
-                return function(message) {
-                    originalLog(message);
-                    try {
-                        window.webkit.messageHandlers.callbackHandler.postMessage('[JS LOG] ' + message);
-                    } catch (e) {
-                        originalLog('❌ Failed to forward log:', e);
-                    }
-                };
-            })(console.log);
-
-            // 🔁 Then start the real extraction
-            const maxWaitTime = 20000;
-            const start = Date.now();
-
-            function tryNow() {
-                const elapsed = Date.now() - start;
-                console.log('[JS] Trying extract at', elapsed + 'ms');
-
-                const heading = document.querySelector('[data-test="pageHeading"]');
-
-                if (elapsed > maxWaitTime) {
-                    console.log('[JS] ❌ Timeout — heading not found');
-                    window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:[FAILED] Timeout waiting for heading');
-                    return;
-                }
-
-                if (!heading) {
-                    console.log('[JS] ⏳ Heading not yet in DOM, retrying...');
-                    setTimeout(tryNow, 500);
-                    return;
-                }
-
-                const text = (heading.innerText || heading.textContent || '').trim();
-                if (!text.length) {
-                    console.log('[JS] ⏳ Heading found but empty, retrying...');
-                    setTimeout(tryNow, 500);
-                    return;
-                }
-
-                console.log('[JS] ✅ Heading found: ' + text);
-                window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:[SUCCESS] ' + text);
-            }
-
-            tryNow();
-        })();
-        """
-
-
-
-
-
-
-
-
-
-
-
-
-
-        /*let js = """
         function waitForElement(xpath) {
             var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             if (element) {
@@ -533,7 +447,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
         waitForElement('\(xpath)');
-        """*/
+        """
 
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
@@ -541,7 +455,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
             self.processNextAction()
         }
-    }*/
+    }
 
     
     //klar men svår att targetta med
@@ -610,29 +524,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
         waitForElementByClass('\(className)', '\(valueToInsert)');
         """
-
-        /*let js = """
-        function waitForElementByClass(className, value) {
-            var elements = document.getElementsByClassName(className);
-            if (elements.length > 0) {
-                var element = elements[0];
-                console.log('Element found using class, filling value...');
-                element.focus();
-                element.value = value;
-
-                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
-                    var event = new Event(eventType, { bubbles: true });
-                    element.dispatchEvent(event);
-                });
-
-                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with class: ' + className + ' and valueType: ' + value);
-            } else {
-                console.log('Element not found by class, retrying...');
-                setTimeout(function() { waitForElementByClass(className, value); }, 500);
-            }
-        }
-        waitForElementByClass('\(className)', '\(valueToInsert)');
-        """*/
 
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
@@ -1013,6 +904,95 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             self.processNextAction()
         }
     }
+    
+    private func scrollToElementAndShowText(xpath: String, explanationText: String) {
+        let js = """
+        function waitForElementAndExplain(xpath, explanationText) {
+            var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+            var element = result.singleNodeValue;
 
+            if (element) {
+
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                setTimeout(function() {
+                    var rect = element.getBoundingClientRect();
+                    
+                    var blueColor = "rgba(0, 0, 255, 0.8)"; // Solid blue matching the highlight
+                    
+                    var overlay = document.createElement("div");
+                    overlay.style.position = "absolute";
+                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px";
+                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px";
+                    overlay.style.width = "100px";
+                    overlay.style.height = "100px";
+                    overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
+                    overlay.style.zIndex = "5000";
+                    overlay.style.pointerEvents = "none";
+                    overlay.style.borderRadius = "50%"; // Circle shape
+                    document.body.appendChild(overlay);
+
+                    var textBox = document.createElement("div");
+                    textBox.style.position = "absolute";
+                    textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
+                    textBox.style.left = (rect.left + window.scrollX) + "px";
+                    textBox.style.maxWidth = "300px"; // Maximum width
+                    textBox.style.padding = "10px";
+                    textBox.style.backgroundColor = "#FFFFFF"; // Solid white background
+                    textBox.style.border = "2px solid " + blueColor; // Solid blue border
+                    textBox.style.borderRadius = "5px";
+                    textBox.style.zIndex = "5001";
+                    textBox.style.color = "#000000";
+                    textBox.style.fontFamily = "Arial, sans-serif";
+                    textBox.style.fontSize = "22px"; // Larger text
+                    textBox.style.lineHeight = "1.5";
+                    textBox.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)"; // Keeping subtle shadow for definition
+                    textBox.innerHTML = explanationText;
+                    document.body.appendChild(textBox);
+
+                    if (rect.width > 300) {
+                        textBox.style.width = rect.width + "px";
+                    }
+
+                    setTimeout(function() {
+                        overlay.remove();
+                        textBox.remove();
+                        window.webkit.messageHandlers.callbackHandler.postMessage('Displayed explanation for element: ' + xpath);
+                    }, 7000);
+                }, 1000);
+                
+            } else {
+                console.log("Element not found, retrying...");
+                setTimeout(function() { waitForElementAndExplain(xpath, explanationText); }, 1000);
+            }
+        }
+        waitForElementAndExplain('\(xpath)', `\(explanationText)`);
+        """
+        
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+                self.processNextAction()
+            }
+        }
+    }
+    private func requestUserInputAndSave(prompt: String, saveToVariable: String) {
+        onRequestUserInput?(prompt) { userInput in
+            // Store the input value in a JavaScript variable for later use
+            let escapedInput = userInput.replacingOccurrences(of: "'", with: "\\'")
+            let setVarJS = """
+            window.browsing_buddy_variables = window.browsing_buddy_variables || {};
+            window.browsing_buddy_variables['\(saveToVariable)'] = '\(escapedInput)';
+            console.log('Saved user input to variable: \(saveToVariable)');
+            """
+            
+            self.webView.evaluateJavaScript(setVarJS) { _, error in
+                if let error = error {
+                    print("Error saving variable: \(error.localizedDescription)")
+                }
+                self.processNextAction()
+            }
+        }
+    }
     
 }
