@@ -154,36 +154,41 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
 
         case "SHOW_MESSAGE":
-            print("SHOW_MESSAGE")
+            print("Entered SHOW_MESSAGE")
             onRequestShowMessage?(action.informationTitle, action.descriptionMessage, action.accessCalendar ?? false) { // om ingen titel passeras in använda default
                 self.processNextAction()
             }
         
         case "SHOW_EXTRACTED_MESSAGE":
-            print("SHOW_EXTRACTED_MESSAGE")
-            onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
+            print("SHOW_EXTRACTED_MESSAGE = ", self.extractedText)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+                self.onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
+                    self.extractedText = ""
+                    self.processNextAction()
+             }
+            /*onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
                 self.extractedText = ""
-                self.processNextAction()
+                self.processNextAction()*/
             }
             
         case "NAVIGATE_WEB":
-            print("Entered A")
+            print("Entered NAVIGATE_WEB")
             navigateToPage(urlString: action.websiteUrl)
             
         case "CLICK_ELEMENT_CLASS":
-            print("CLICK_ELEMENT_CLASS")
+            print("Entered CLICK_ELEMENT_CLASS")
             clickElementClass(withClass: action.jsElementKey, willNavigate: action.willNavigate)
             /*DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
              self.clickElementClass(withClass: action.parameter)
              }*/
         case "CLICK_ELEMENT_XPATH":
-            print("CLICK_ELEMENT_XPATH")
-            //clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { //bara test
+            print("Entered CLICK_ELEMENT_XPATH")
+            clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
+            /*DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { //bara test
              self.clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
-             }
+             }*/
         case "EXTRACT_TEXT_XPATH":
-            print("EXTRACT_TEXT_XPATH")
+            print("Entered EXTRACT_TEXT_XPATH")
             extractTextByXPath(xpath: action.jsElementKey)
             
         case "INSERT_ELEMENT_XPATH":
@@ -203,6 +208,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "EXTRACT_LIST_BY_XPATH":
             print("EXTRACT_LIST_BY_XPATH")
             extractListItemsByXPath(xpath: action.jsElementKey)
+            
             
         case "CLICK_ELEMENT_CLASS_HIGHLIGHT":
             //clickElementClassHighlight(withClass: action.jsElementKey, willNavigate: action.willNavigate)
@@ -374,9 +380,147 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
-    //Klar
     private func extractTextByXPath(xpath: String) {
         let js = """
+        (function() {
+            console.log = (function(originalLog) {
+                return function(message) {
+                    originalLog(message);
+                    try {
+                        window.webkit.messageHandlers.callbackHandler.postMessage('[JS LOG] ' + message);
+                    } catch (e) {
+                        originalLog('Failed to forward log:', e);
+                    }
+                };
+            })(console.log);
+
+            function postError(msg) {
+                console.log('[JS ERROR] ' + msg);
+                try {
+                    window.webkit.messageHandlers.errorHandler.postMessage('[JS ERROR] ' + msg);
+                } catch (e) {
+                    console.log('Failed to post error: ' + e);
+                }
+            }
+
+            const alert = document.querySelector('ids-alert');
+            if (!alert) return postError('ids-alert not found');
+
+            const shadow = alert.shadowRoot;
+            if (!shadow) return postError('Shadow root not found on ids-alert');
+
+            // Extract <h2 slot="headline">
+            const headlineSlot = shadow.querySelector('slot[name="headline"]');
+            let headlineText = '';
+            if (headlineSlot) {
+                const assigned = headlineSlot.assignedNodes({ flatten: true });
+                headlineText = assigned.map(n => (n.textContent || '').trim()).filter(Boolean).join(' ');
+            }
+
+            // Extract <slot> (body content)
+            const bodySlot = shadow.querySelector('slot:not([name])'); // unnamed slot
+            let bodyText = '';
+            if (bodySlot) {
+                const assigned = bodySlot.assignedNodes({ flatten: true });
+                bodyText = assigned
+                    .filter(n => n.nodeType === Node.ELEMENT_NODE || n.nodeType === Node.TEXT_NODE)
+                    .map(n => (n.textContent || '').trim())
+                    .filter(Boolean)
+                    .join('\\n\\n');
+            }
+
+            const finalText = [headlineText, bodyText].filter(Boolean).join('\\n\\n');
+
+            if (!finalText || finalText.length < 10) {
+                return postError('Extracted text is too short or empty');
+            }
+
+            window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:' + finalText);
+        })();
+        """
+
+
+
+
+
+        // ⏳ Delay before injecting JS (e.g. 2.5 seconds)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            self.webView.evaluateJavaScript(js) { _, error in
+                if let error = error {
+                    print("JavaScript injection error: \(error.localizedDescription)")
+                }
+                // No processNextAction here — handled by callbackHandler
+            }
+        }
+    }
+
+    
+    //Klar
+    /*private func extractTextByXPath(xpath: String) {
+        
+        let js = """
+        (function setupLoggingAndExtract() {
+            console.log = (function(originalLog) {
+                return function(message) {
+                    originalLog(message);
+                    try {
+                        window.webkit.messageHandlers.callbackHandler.postMessage('[JS LOG] ' + message);
+                    } catch (e) {
+                        originalLog('❌ Failed to forward log:', e);
+                    }
+                };
+            })(console.log);
+
+            // 🔁 Then start the real extraction
+            const maxWaitTime = 20000;
+            const start = Date.now();
+
+            function tryNow() {
+                const elapsed = Date.now() - start;
+                console.log('[JS] Trying extract at', elapsed + 'ms');
+
+                const heading = document.querySelector('[data-test="pageHeading"]');
+
+                if (elapsed > maxWaitTime) {
+                    console.log('[JS] ❌ Timeout — heading not found');
+                    window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:[FAILED] Timeout waiting for heading');
+                    return;
+                }
+
+                if (!heading) {
+                    console.log('[JS] ⏳ Heading not yet in DOM, retrying...');
+                    setTimeout(tryNow, 500);
+                    return;
+                }
+
+                const text = (heading.innerText || heading.textContent || '').trim();
+                if (!text.length) {
+                    console.log('[JS] ⏳ Heading found but empty, retrying...');
+                    setTimeout(tryNow, 500);
+                    return;
+                }
+
+                console.log('[JS] ✅ Heading found: ' + text);
+                window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:[SUCCESS] ' + text);
+            }
+
+            tryNow();
+        })();
+        """
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /*let js = """
         function waitForElement(xpath) {
             var element = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             if (element) {
@@ -389,7 +533,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
         waitForElement('\(xpath)');
-        """
+        """*/
 
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
@@ -397,7 +541,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
             self.processNextAction()
         }
-    }
+    }*/
 
     
     //klar men svår att targetta med
@@ -818,11 +962,57 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
-    //ny otestad
+    //Klar
     private func waitForWebChange() {
         lastPageURL = webView.url
         isNavigating = true
         print("Currrent URL: \(lastPageURL?.absoluteString ?? "empty")")
     }
+    
+    private func extractTextBySelector(selector: String) {
+        let js = """
+        function waitAndExtract(selector) {
+            const container = document.querySelector(selector);
+            if (!container) {
+                console.log('Selector not found: ' + selector + ', retrying...');
+                setTimeout(() => waitAndExtract(selector), 500);
+                return;
+            }
+
+            const idsAlert = container.querySelector('ids-alert');
+            if (!idsAlert || !idsAlert.shadowRoot) {
+                console.log('ids-alert or shadowRoot not found, retrying...');
+                setTimeout(() => waitAndExtract(selector), 500);
+                return;
+            }
+
+            const textDiv = idsAlert.shadowRoot.querySelector('div.text');
+            if (!textDiv) {
+                console.log('Text container not found in shadow DOM, retrying...');
+                setTimeout(() => waitAndExtract(selector), 500);
+                return;
+            }
+
+            const paragraphs = textDiv.querySelectorAll('p');
+            let texts = [];
+            paragraphs.forEach(p => {
+                texts.push((p.innerText || p.textContent || '').trim());
+            });
+
+            const finalText = texts.join('\\n\\n');
+            window.webkit.messageHandlers.callbackHandler.postMessage('ExtractedText:' + finalText);
+        }
+
+        waitAndExtract('\(selector)');
+        """
+
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+            }
+            self.processNextAction()
+        }
+    }
+
     
 }
