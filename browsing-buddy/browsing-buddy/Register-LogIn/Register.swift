@@ -121,6 +121,7 @@ func createUserProfile(userId: String,
 
 class UserSession: ObservableObject {
     @Published var currentUser: UserProfile
+    @Published var userInput: String = ""
     init(currentUser: UserProfile) {
         self.currentUser = currentUser
     }
