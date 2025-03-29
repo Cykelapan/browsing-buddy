@@ -12,7 +12,7 @@ import EventKit
 
 //För min älskade switch
 enum PopupType: Identifiable {
-    case input(prompt: String, onSubmit: (String) -> Void)
+    case input(title: String, prompt: String, onSubmit: (String) -> Void)
     case message(title: String, text: String, accessCalender: Bool, onDismiss: () -> Void)
 
     var id: String {
@@ -70,8 +70,8 @@ struct ContentView: View {
             }
             .onChange(of: webViewController) { // Fuck you UIkit!!! Psykofanskap!!
                 if let controller = webViewController {
-                    controller.onRequestUserInput = { prompt, completion in
-                        activePopup = .input(prompt: prompt, onSubmit: completion)
+                    controller.onRequestUserInput = { title, prompt, completion in
+                        activePopup = .input(title: title, prompt: prompt, onSubmit: completion)
                     }
                     controller.onRequestShowMessage = { title, text, accessCalendar, completion in
                         activePopup = .message(title: title, text: text, accessCalender: accessCalendar, onDismiss: completion)
@@ -83,8 +83,12 @@ struct ContentView: View {
                         // Lazer Denis i farten igen =)
                         switch popup {
                             
-                        case .input(let prompt, let onSubmit):
+                        case .input(let title, let prompt, let onSubmit):
                             VStack {
+                                Text(title)
+                                    .font(.title)
+                                    .fontWeight(.bold)
+                                
                                 Text(prompt)
                                     .font(.headline)
                                 

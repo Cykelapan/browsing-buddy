@@ -22,7 +22,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     private var onQueueComplete: (() -> Void)?
     private var lastPageURL: URL?
     
-    var onRequestUserInput: ((String, @escaping (String) -> Void) -> Void)?
+    var onRequestUserInput: ((String, String, @escaping (String) -> Void) -> Void)?
     var onRequestShowMessage: ((String, String, Bool, @escaping () -> Void) -> Void)?
     
     init(userSession: UserSession) {
@@ -125,8 +125,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "INPUT_REQUEST":
             print("Entered INPUT_REQUEST")
+            let titleText = action.informationTitle.isEmpty ? "Input Required" : action.informationTitle
             let promptText = action.descriptionMessage.isEmpty ? "Please enter information" : action.descriptionMessage
-            requestUserInput(prompt: promptText)
+            requestUserInput(title: titleText, prompt: promptText)
 
         case "SHOW_MESSAGE":
             print("Entered SHOW_MESSAGE")
@@ -975,8 +976,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
     }
-    private func requestUserInput(prompt: String) {
-        onRequestUserInput?(prompt) { [weak self] userInput in
+    private func requestUserInput(title: String, prompt: String) {
+        onRequestUserInput?(title, prompt) { [weak self] userInput in
             guard let self = self else { return }
             
             // Save the input to UserSession
