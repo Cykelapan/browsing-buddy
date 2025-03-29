@@ -205,6 +205,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             extractBookedTimes1177(xpath: action.jsElementKey)
             
         case "INSERT_ELEMENT_ID":
+            print("INSERT_ELEMENT_ID")
             fillElementById(id: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
             
         default:
@@ -552,28 +553,41 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         function waitForElementById(id, value) {
             var element = document.getElementById(id);
             if (element) {
-                console.log('Element found using ID, filling value...');
-                element.focus();
-                element.value = value;
+                try {
+                    console.log('Element found using ID, filling value...');
+                    element.focus();
+                    element.value = value;
 
-                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
-                    var event = new Event(eventType, { bubbles: true });
-                    element.dispatchEvent(event);
-                });
+                    ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
+                        var event = new Event(eventType, { bubbles: true });
+                        element.dispatchEvent(event);
+                    });
 
-                var spaceEvent = new KeyboardEvent('keydown', {
-                    bubbles: true,
-                    cancelable: true,
-                    key: ' ',   // Space key
-                    code: 'Space',
-                    view: window // Ensures event is dispatched properly
-                });
-                element.dispatchEvent(spaceEvent);
+                    var spaceEvent = new KeyboardEvent('keydown', {
+                        bubbles: true,
+                        cancelable: true,
+                        key: ' ',
+                        code: 'Space',
+                        view: window
+                    });
+                    element.dispatchEvent(spaceEvent);
 
-                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with ID: ' + id + ' and value: ' + value);
+                    window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with ID: ' + id + ' and value: ' + value);
+                } catch (error) {
+                    window.webkit.messageHandlers.errorHandler.postMessage('Error filling element with ID: ' + id + ' - ' + error.message);
+                }
             } else {
-                console.log('Element not found by ID, retrying...');
-                setTimeout(function() { waitForElementById(id, value); }, 500);
+                var retryCount = window.fillElementRetryCount || 0;
+                window.fillElementRetryCount = retryCount + 1;
+                
+                if (retryCount < 10) {
+                    console.log('Element not found by ID, retrying... (' + retryCount + '/10)');
+                    setTimeout(function() { waitForElementById(id, value); }, 500);
+                } else {
+                    window.fillElementRetryCount = 0;
+                    window.webkit.messageHandlers.errorHandler.postMessage('Element with ID "' + id + '" not found after 10 attempts');
+                    window.webkit.messageHandlers.callbackHandler.postMessage('ElementNotFound:' + id);
+                }
             }
         }
         waitForElementById('\(id)', '\(escapedValue)');
@@ -582,6 +596,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript injection error: \(error.localizedDescription)")
+                // Send to errorHandler
+                let errorJS = "window.webkit.messageHandlers.errorHandler.postMessage('JavaScript injection error: \(error.localizedDescription.replacingOccurrences(of: "'", with: "\\'"))');"
+                self.webView.evaluateJavaScript(errorJS, completionHandler: nil)
             }
             if !self.isNavigating {
                 self.processNextAction()
