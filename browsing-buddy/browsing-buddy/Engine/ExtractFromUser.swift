@@ -17,6 +17,7 @@ enum ExtractFromUser : String, Codable{
     case GET_LASTNAME = "GET_LASTNAME"
     case GET_FULLNAME = "GET_FULLNAME"
     case GET_USER_AGE = "GET_USER_AGE"
+    case GET_USER_INPUT = "GET_USER_INPUT"
     
     //Koppla till användarens data
     func getValue(session: UserSession) -> String {
@@ -38,6 +39,8 @@ enum ExtractFromUser : String, Codable{
             return "2020-08-16"
         case .GET_USER_AGE:
             return "75"
+        case .GET_USER_INPUT:
+            return session.userInput
         }
     }
 }
