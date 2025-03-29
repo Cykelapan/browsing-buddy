@@ -84,27 +84,7 @@ struct ContentView: View {
                         switch popup {
                             
                         case .input(let title, let prompt, let onSubmit):
-                            VStack {
-                                Text(title)
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                
-                                Text(prompt)
-                                    .font(.headline)
-                                
-                                TextField("Skriv här...", text: $currentInputText)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .padding()
-                                
-                                Button("Godkänn") {
-                                    // Pass the actual user input to the callback
-                                    onSubmit(currentInputText)
-                                    activePopup = nil
-                                    // Reset after submission
-                                    currentInputText = ""
-                                }
-                            }
-                            .padding()
+                            inputPopupView(title: title, prompt: prompt, onSubmit: onSubmit)
                             
                         case .message(let title, let text,let accessCalender, let onDismiss):
                             messagePopupView(title: title, text: text, accessCalendar: accessCalender, onDismiss: {
@@ -180,7 +160,27 @@ struct ContentView: View {
            .padding()
        }
     
-    
+    private func inputPopupView(title: String, prompt: String, onSubmit: @escaping (String) -> Void) -> some View {
+        VStack {
+            Text(title)
+                .font(.title)
+                .fontWeight(.bold)
+            
+            Text(prompt)
+                .font(.headline)
+            
+            TextField("Skriv här...", text: $currentInputText)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+            
+            Button("Godkänn") {
+                onSubmit(currentInputText)
+                activePopup = nil
+                currentInputText = ""
+            }
+        }
+        .padding()
+    }
     
     // äger knappen
     private func handleButtonTap(button: UIButtonData) async {

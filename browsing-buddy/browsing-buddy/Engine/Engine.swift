@@ -980,7 +980,6 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         onRequestUserInput?(title, prompt) { [weak self] userInput in
             guard let self = self else { return }
             
-            // Save the input to UserSession
             self.userSession.userInput = userInput
             print("Saved user input: \(userInput)")
             
