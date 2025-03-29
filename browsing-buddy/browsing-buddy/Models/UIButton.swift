@@ -7,11 +7,8 @@
 
 import Foundation
 
-struct UIButtonData : Codable, Hashable, Equatable {
+struct UIButtonData : Codable, Hashable {
     let buttonText : String
     let nextStateKey : String
     
-    static func == (lhs: UIButtonData, rhs: UIButtonData) -> Bool {
-        return lhs.buttonText == rhs.buttonText
-    }
 }

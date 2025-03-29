@@ -9,17 +9,27 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var userSession: UserSession
-    @State private var avalibleWebsites: [UIButtonData] =  []
+    @State private var model =  SettingsModel()
     
     var body: some View {
-        NavigationStack{
-            VStack{
-                Form {
-                    
+        VStack{
+            Form{
+                Section("Hemsidor"){
+                    FavoriteWebsitesView(selectedFavorites: $userSession.currentUser.favoriteButtons, avalibleWebsites: $model.avalibleWebsites).padding()
+                }
+                
+                Section("Tecken strolek \(Int(model.fontSize))"){
+                    Slider(value: $model.fontSize, in: 15...40, step: 1) {
+                        Text("Point Size \(Int(model.fontSize))")
+                    }
+                    Text("Example på hur texten blir").font(.system(size: model.fontSize))
                 }
             }
-        }
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        }.onAppear(perform: {
+            Task{
+                await model.getInitalStates(selectedFavorites: userSession.currentUser.favoriteButtons)
+            }
+        })
     }
 }
 

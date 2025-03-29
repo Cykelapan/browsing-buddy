@@ -14,15 +14,11 @@ struct browsing_buddyApp: App {
     
     var body: some Scene {
         WindowGroup {
-            /*ContentView()
-                .environmentObject(userSession)*/
-            /*ParentView()
-                .environmentObject(userSession)*/
             if userSession.currentUser.userId == ""{
                 LandingPage()
             } else {
                 //TODO: contentView and that navigation
-                ContentView()
+                ParentView()
             }
         }.environmentObject(userSession)
     }

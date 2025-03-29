@@ -9,16 +9,15 @@ import SwiftUI
 
 enum AppRoute: Hashable {
     
-    case contentView
+    case settings
 
     
     @ViewBuilder
     func view(path: Binding<NavigationPath>) -> some View {
         switch self {
-        case .contentView:
-            ContentView()
      
-            
+        case .settings:
+            SettingsView()
         }
     }
 }
