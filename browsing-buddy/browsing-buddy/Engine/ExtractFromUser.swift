@@ -23,7 +23,7 @@ enum ExtractFromUser : String, Codable{
     func getValue(session: UserSession) -> String {
         switch self {
         case .NOTHING:
-            return "1"
+            return "1" //updatera så den använder valueToInject istället
         case .GET_USERNAME:
             return "Värnamo station"
         case .GET_EMAIL:
