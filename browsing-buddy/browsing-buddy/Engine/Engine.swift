@@ -131,14 +131,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
 
         case "SHOW_MESSAGE":
             print("Entered SHOW_MESSAGE")
-            onRequestShowMessage?(action.informationTitle, action.descriptionMessage, action.accessCalendar ?? false) { // om ingen titel passeras in använda default
+            onRequestShowMessage?(action.informationTitle, action.descriptionMessage, action.accessCalendar) { // om ingen titel passeras in använda default
                 self.processNextAction()
             }
         
         case "SHOW_EXTRACTED_MESSAGE":
             print("SHOW_EXTRACTED_MESSAGE = ", self.extractedText)
             DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) {
-                self.onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
+                self.onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar){
                     self.extractedText = ""
                     self.processNextAction()
              }
@@ -925,7 +925,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 setTimeout(function() {
                     var rect = element.getBoundingClientRect();
                     
-                    var blueColor = "rgba(0, 0, 255, 0.8)"; // Solid blue matching the highlight
+                    var blueColor = "rgba(0, 0, 255, 0.8)";
                     
                     var overlay = document.createElement("div");
                     overlay.style.position = "absolute";
@@ -934,24 +934,24 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                     overlay.style.width = "100px";
                     overlay.style.height = "100px";
                     overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
-                    overlay.style.zIndex = "5000";
+                    overlay.style.zIndex = "29998";
                     overlay.style.pointerEvents = "none";
-                    overlay.style.borderRadius = "50%"; // Circle shape
+                    overlay.style.borderRadius = "50%";
                     document.body.appendChild(overlay);
 
                     var textBox = document.createElement("div");
                     textBox.style.position = "absolute";
                     textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
                     textBox.style.left = (rect.left + window.scrollX) + "px";
-                    textBox.style.maxWidth = "300px"; // Maximum width
+                    textBox.style.maxWidth = "300px";
                     textBox.style.padding = "10px";
-                    textBox.style.backgroundColor = "#FFFFFF"; // Solid white background
-                    textBox.style.border = "2px solid " + blueColor; // Solid blue border
+                    textBox.style.backgroundColor = "#FFFFFF";
+                    textBox.style.border = "2px solid " + blueColor;
                     textBox.style.borderRadius = "5px";
-                    textBox.style.zIndex = "5001";
+                    textBox.style.zIndex = "29999";
                     textBox.style.color = "#000000";
                     textBox.style.fontFamily = "Arial, sans-serif";
-                    textBox.style.fontSize = "22px"; // Larger text
+                    textBox.style.fontSize = "22px";
                     textBox.style.lineHeight = "1.5";
                     textBox.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)"; // Keeping subtle shadow for definition
                     textBox.innerHTML = explanationText;
