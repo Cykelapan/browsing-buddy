@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		CC2EF0032D98573F0028A476 /* SlideMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2EF0022D98573F0028A476 /* SlideMenuView.swift */; };
+		CC2EF0052D9859600028A476 /* TestMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2EF0042D9859600028A476 /* TestMenu.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		444657BD2D7DC09200F4BA6D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		444657AC2D7DC09100F4BA6D /* browsing-buddy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "browsing-buddy.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		444657BC2D7DC09200F4BA6D /* browsing-buddyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "browsing-buddyTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		444657C62D7DC09200F4BA6D /* browsing-buddyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "browsing-buddyUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		CC2EF0022D98573F0028A476 /* SlideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlideMenuView.swift; sourceTree = "<group>"; };
+		CC2EF0042D9859600028A476 /* TestMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestMenu.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -88,6 +95,7 @@
 		444657A32D7DC09100F4BA6D = {
 			isa = PBXGroup;
 			children = (
+				CC2EF0012D9857070028A476 /* menu */,
 				444657AE2D7DC09100F4BA6D /* browsing-buddy */,
 				444657BF2D7DC09200F4BA6D /* browsing-buddyTests */,
 				444657C92D7DC09200F4BA6D /* browsing-buddyUITests */,
@@ -103,6 +111,15 @@
 				444657C62D7DC09200F4BA6D /* browsing-buddyUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CC2EF0012D9857070028A476 /* menu */ = {
+			isa = PBXGroup;
+			children = (
+				CC2EF0022D98573F0028A476 /* SlideMenuView.swift */,
+				CC2EF0042D9859600028A476 /* TestMenu.swift */,
+			);
+			path = menu;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -251,6 +268,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC2EF0052D9859600028A476 /* TestMenu.swift in Sources */,
+				CC2EF0032D98573F0028A476 /* SlideMenuView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

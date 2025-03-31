@@ -78,7 +78,7 @@ func createUserProfileFrom(userData: UserData,
                        favoriteButtons: [UIButtonData] =
                        [
                            //TODO: hämta intial state knappar
-                           UIButtonData(buttonText: "Kommunen", nextStateKey: "67d4dba68c54d4af6dcadbba"),
+                           UIButtonData(buttonText: "Jönköping kommun", nextStateKey: "67d4dba68c54d4af6dcadbba"),
                            UIButtonData(buttonText: "1177", nextStateKey: "67e453ab63361512f537556f"),
                            UIButtonData(buttonText: "FASS", nextStateKey: "67e44ee363361512f537556b")
                            //UIButtonData(buttonText: "Google", nextStateKey: "67d85394b58290e926e20d4d"),
@@ -106,7 +106,7 @@ func createUserProfile(userId: String,
                        favoriteButtons: [UIButtonData] =
                        [
                            //TODO: hämta intial state knappar
-                           UIButtonData(buttonText: "Kommunen", nextStateKey: "67d4dba68c54d4af6dcadbba"),
+                           UIButtonData(buttonText: "Jönköping kommun", nextStateKey: "67d4dba68c54d4af6dcadbba"),
                            UIButtonData(buttonText: "1177", nextStateKey: "67e453ab63361512f537556f"),
                            UIButtonData(buttonText: "FASS", nextStateKey: "67e44ee363361512f537556b")
                            //UIButtonData(buttonText: "Google", nextStateKey: "67d85394b58290e926e20d4d"),

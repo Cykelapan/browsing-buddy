@@ -132,14 +132,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
 
         case "SHOW_MESSAGE":
             print("Entered SHOW_MESSAGE")
-            onRequestShowMessage?(action.informationTitle, action.descriptionMessage, action.accessCalendar ?? false) { // om ingen titel passeras in använda default
+            onRequestShowMessage?(action.informationTitle, action.descriptionMessage, action.accessCalendar) { // om ingen titel passeras in använda default
                 self.processNextAction()
             }
         
         case "SHOW_EXTRACTED_MESSAGE":
             print("SHOW_EXTRACTED_MESSAGE = ", self.extractedText)
             DispatchQueue.main.asyncAfter(deadline: .now() + 6.0) {
-                self.onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar ?? false){
+                self.onRequestShowMessage?(action.informationTitle, self.extractedText, action.accessCalendar){
                     self.extractedText = ""
                     self.processNextAction()
              }
@@ -206,7 +206,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             extractBookedTimes1177(xpath: action.jsElementKey)
             
         case "INSERT_ELEMENT_ID":
+            print("INSERT_ELEMENT_ID")
             fillElementById(id: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
+        
+        case "FILL_GOOGLE_SEARCH_BOX":
+            fillGoogleSearchBox(xpath: action.jsElementKey, valueType: action.extractFromUser, willNavigate: action.willNavigate)
             
         default:
             print("Unknown action: \(action.functionToCall)")
@@ -555,28 +559,41 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         function waitForElementById(id, value) {
             var element = document.getElementById(id);
             if (element) {
-                console.log('Element found using ID, filling value...');
-                element.focus();
-                element.value = value;
+                try {
+                    console.log('Element found using ID, filling value...');
+                    element.focus();
+                    element.value = value;
 
-                ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
-                    var event = new Event(eventType, { bubbles: true });
-                    element.dispatchEvent(event);
-                });
+                    ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
+                        var event = new Event(eventType, { bubbles: true });
+                        element.dispatchEvent(event);
+                    });
 
-                var spaceEvent = new KeyboardEvent('keydown', {
-                    bubbles: true,
-                    cancelable: true,
-                    key: ' ',   // Space key
-                    code: 'Space',
-                    view: window // Ensures event is dispatched properly
-                });
-                element.dispatchEvent(spaceEvent);
+                    var spaceEvent = new KeyboardEvent('keydown', {
+                        bubbles: true,
+                        cancelable: true,
+                        key: ' ',
+                        code: 'Space',
+                        view: window
+                    });
+                    element.dispatchEvent(spaceEvent);
 
-                window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with ID: ' + id + ' and value: ' + value);
+                    window.webkit.messageHandlers.callbackHandler.postMessage('Filled element with ID: ' + id + ' and value: ' + value);
+                } catch (error) {
+                    window.webkit.messageHandlers.errorHandler.postMessage('Error filling element with ID: ' + id + ' - ' + error.message);
+                }
             } else {
-                console.log('Element not found by ID, retrying...');
-                setTimeout(function() { waitForElementById(id, value); }, 500);
+                var retryCount = window.fillElementRetryCount || 0;
+                window.fillElementRetryCount = retryCount + 1;
+                
+                if (retryCount < 10) {
+                    console.log('Element not found by ID, retrying... (' + retryCount + '/10)');
+                    setTimeout(function() { waitForElementById(id, value); }, 500);
+                } else {
+                    window.fillElementRetryCount = 0;
+                    window.webkit.messageHandlers.errorHandler.postMessage('Element with ID "' + id + '" not found after 10 attempts');
+                    window.webkit.messageHandlers.callbackHandler.postMessage('ElementNotFound:' + id);
+                }
             }
         }
         waitForElementById('\(id)', '\(escapedValue)');
@@ -585,6 +602,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         webView.evaluateJavaScript(js) { _, error in
             if let error = error {
                 print("JavaScript injection error: \(error.localizedDescription)")
+                // Send to errorHandler
+                let errorJS = "window.webkit.messageHandlers.errorHandler.postMessage('JavaScript injection error: \(error.localizedDescription.replacingOccurrences(of: "'", with: "\\'"))');"
+                self.webView.evaluateJavaScript(errorJS, completionHandler: nil)
             }
             if !self.isNavigating {
                 self.processNextAction()
@@ -895,6 +915,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
+    
     private func scrollToElementAndShowText(xpath: String, explanationText: String) {
         let js = """
         function waitForElementAndExplain(xpath, explanationText) {
@@ -908,7 +929,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 setTimeout(function() {
                     var rect = element.getBoundingClientRect();
                     
-                    var blueColor = "rgba(0, 0, 255, 0.8)"; // Solid blue matching the highlight
+                    var blueColor = "rgba(0, 0, 255, 0.8)";
                     
                     var overlay = document.createElement("div");
                     overlay.style.position = "absolute";
@@ -917,24 +938,26 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                     overlay.style.width = "100px";
                     overlay.style.height = "100px";
                     overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
-                    overlay.style.zIndex = "5000";
+                    overlay.style.zIndex = "29998";
                     overlay.style.pointerEvents = "none";
-                    overlay.style.borderRadius = "50%"; // Circle shape
+                    overlay.style.borderRadius = "50%";
                     document.body.appendChild(overlay);
 
                     var textBox = document.createElement("div");
                     textBox.style.position = "absolute";
-                    textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
-                    textBox.style.left = (rect.left + window.scrollX) + "px";
-                    textBox.style.maxWidth = "300px"; // Maximum width
+                    //textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
+                    //textBox.style.left = (rect.left + window.scrollX) + "px";
+                    textBox.style.top = (parseFloat(overlay.style.top) + 100 + 10) + "px"; // 10px below the circle
+                    textBox.style.left = (parseFloat(overlay.style.left) - 50) + "px"; 
+                    textBox.style.maxWidth = "300px";
                     textBox.style.padding = "10px";
-                    textBox.style.backgroundColor = "#FFFFFF"; // Solid white background
-                    textBox.style.border = "2px solid " + blueColor; // Solid blue border
+                    textBox.style.backgroundColor = "#FFFFFF";
+                    textBox.style.border = "2px solid " + blueColor;
                     textBox.style.borderRadius = "5px";
-                    textBox.style.zIndex = "5001";
+                    textBox.style.zIndex = "29999";
                     textBox.style.color = "#000000";
                     textBox.style.fontFamily = "Arial, sans-serif";
-                    textBox.style.fontSize = "22px"; // Larger text
+                    textBox.style.fontSize = "22px";
                     textBox.style.lineHeight = "1.5";
                     textBox.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)"; // Keeping subtle shadow for definition
                     textBox.innerHTML = explanationText;
@@ -949,7 +972,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                         textBox.remove();
                         window.webkit.messageHandlers.callbackHandler.postMessage('Displayed explanation for element: ' + xpath);
                     }, 7000);
-                }, 1000);
+                }, 2000); // ändra till 1000 senare
                 
             } else {
                 console.log("Element not found, retrying...");
@@ -966,6 +989,79 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
     }
+    
+    private func scrollToElementAndShowTextId(id: String, explanationText: String) {
+        let js = """
+        function waitForElementAndExplain(id, explanationText) {
+            var element = document.getElementById(id);
+
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                setTimeout(function() {
+                    var rect = element.getBoundingClientRect();
+                    
+                    var blueColor = "rgba(0, 0, 255, 0.8)";
+                    
+                    var overlay = document.createElement("div");
+                    overlay.style.position = "absolute";
+                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px";
+                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px";
+                    overlay.style.width = "100px";
+                    overlay.style.height = "100px";
+                    overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
+                    overlay.style.zIndex = "29998";
+                    overlay.style.pointerEvents = "none";
+                    overlay.style.borderRadius = "50%";
+                    document.body.appendChild(overlay);
+
+                    var textBox = document.createElement("div");
+                    textBox.style.position = "absolute";
+                    //textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
+                    //textBox.style.left = (rect.left + window.scrollX) + "px";
+                    textBox.style.top = (parseFloat(overlay.style.top) + 100 + 10) + "px"; // 10px below the circle
+                    textBox.style.left = (parseFloat(overlay.style.left) - 50) + "px";
+                    textBox.style.maxWidth = "300px";
+                    textBox.style.padding = "10px";
+                    textBox.style.backgroundColor = "#FFFFFF";
+                    textBox.style.border = "2px solid " + blueColor;
+                    textBox.style.borderRadius = "5px";
+                    textBox.style.zIndex = "29999";
+                    textBox.style.color = "#000000";
+                    textBox.style.fontFamily = "Arial, sans-serif";
+                    textBox.style.fontSize = "22px";
+                    textBox.style.lineHeight = "1.5";
+                    textBox.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)"; // Keeping subtle shadow for definition
+                    textBox.innerHTML = explanationText;
+                    document.body.appendChild(textBox);
+
+                    if (rect.width > 300) {
+                        textBox.style.width = rect.width + "px";
+                    }
+
+                    setTimeout(function() {
+                        overlay.remove();
+                        textBox.remove();
+                        window.webkit.messageHandlers.callbackHandler.postMessage('Displayed explanation for element: ' + id);
+                    }, 7000);
+                }, 2000); // ändra till 1000 senare
+                
+            } else {
+                console.log("Element not found, retrying...");
+                setTimeout(function() { waitForElementAndExplain(id, explanationText); }, 1000);
+            }
+        }
+        waitForElementAndExplain('\(id)', `\(explanationText)`);
+        """
+        
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+                self.processNextAction()
+            }
+        }
+    }
+    
     private func requestUserInput(title: String, prompt: String) {
         self.isWaitingForUserInput = true
         onRequestUserInput?(title, prompt) { [weak self] userInput in
@@ -978,4 +1074,82 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
+    private func fillGoogleSearchBox(xpath: String, valueType: ExtractFromUser, willNavigate navigate: Bool) {
+        isNavigating = navigate
+        let searchText = valueType.getValue(session: userSession)
+        let escapedValue = searchText.replacingOccurrences(of: "'", with: "\\'")
+        
+        let js = """
+            function fillGoogleSearchBox(searchText) {
+                // Try EVERY possible method to find the search input
+                var searchElements = [
+                    document.querySelector('input[name="q"]'),
+                    document.querySelector('textarea[name="q"]'),
+                    document.querySelector('.gLFyf'),
+                    document.getElementById('APjFqb'),
+                    document.querySelector('input[type="search"]'),
+                    document.querySelector('input[title="Sök"]'),
+                    document.querySelector('input[aria-label="Sök"]'),
+                    document.querySelector('textarea[aria-label="Sök"]')
+                ];
+                
+                // Find first non-null element
+                var searchBox = null;
+                for (var i = 0; i < searchElements.length; i++) {
+                    if (searchElements[i]) {
+                        searchBox = searchElements[i];
+                        console.log("Found search box using method #" + (i+1));
+                        break;
+                    }
+                }
+                
+                if (searchBox) {
+                    try {
+                        console.log('Google search box found, filling search...');
+                        searchBox.focus();
+                        searchBox.value = searchText;
+                        
+                        // Trigger events
+                        ['input', 'change', 'keydown', 'keyup', 'blur'].forEach(function(eventType) {
+                            var event = new Event(eventType, { bubbles: true });
+                            searchBox.dispatchEvent(event);
+                        });
+                        
+                        // Form submission might be more reliable than Enter key
+                        var form = searchBox.closest('form');
+                        if (form) {
+                            form.submit();
+                        } else {
+                            // Fallback to Enter key
+                            var enterEvent = new KeyboardEvent('keydown', {
+                                bubbles: true,
+                                cancelable: true,
+                                key: 'Enter',
+                                code: 'Enter',
+                                keyCode: 13
+                            });
+                            searchBox.dispatchEvent(enterEvent);
+                        }
+                        
+                        window.webkit.messageHandlers.callbackHandler.postMessage('Google search performed with text: ' + searchText);
+                        return true;
+                    } catch (e) {
+                        window.webkit.messageHandlers.errorHandler.postMessage('Error interacting with search box: ' + e.message);
+                        return false;
+                    }
+                } else {
+                    window.webkit.messageHandlers.errorHandler.postMessage('Could not find Google search box using any method');
+                    return false;
+                }
+            }
+            
+            fillGoogleSearchBox('\(escapedValue)');
+            """
+        
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript error: \(error.localizedDescription)")
+            }
+        }
+    }
 }

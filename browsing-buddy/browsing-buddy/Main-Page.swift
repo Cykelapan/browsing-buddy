@@ -8,40 +8,12 @@
 import SwiftUI
 
 struct ParentView: View {
-    @State private var path = NavigationPath()
-    @EnvironmentObject var userSession: UserSession
-    
+    @State var path = NavigationPath()
     
     var body: some View {
         NavigationStack(path: $path) {
-            VStack(spacing: 40) {
-                Text("Välkomment till Browsing-Buddy")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, 50)
-
-                NavigationButton(
-                    text: "Registrera dig",
-                    color: .blue,
-                    fontSize: 22,
-                    route: .contentView,
-                    path: $path
-                )
-                .padding(.horizontal)
-
-                NavigationButton(
-                    text: "Logga in",
-                    color: .green,
-                    fontSize: 22,
-                    route: .contentView,
-                    path: $path
-                )
-                .padding(.horizontal)
-
-                Spacer()
-            }
-            .navigationDestination(for: AppRoute.self) { route in
+            ContentView(path: $path)
+                .navigationDestination(for: AppRoute.self) { route in
                 route.view(path: $path)
             }
         }

@@ -33,6 +33,7 @@ struct ContentView: View {
     @State private var currentButtons: [UIButtonData] = []
     @StateObject private var calendarManager = CalendarEventManager()
     @State private var showSuccessPopup = false
+    @Binding  var path: NavigationPath
     @State private var currentInputText = ""
     
     @State private var activePopup: PopupType? = nil
@@ -45,6 +46,13 @@ struct ContentView: View {
                     .frame(height: geometry.size.height * 0.8)
 
                 HStack(spacing: 0) {
+                    NavigationButton (text: "inställningar",
+                                      color: .purple,
+                                      fontSize: 22,
+                                      route: .settings,
+                                      path: $path)
+                    .frame(width: geometry.size.width * 0.2)
+                    
                     FavoriteButtonView(
                         buttons: userSession.currentUser.favoriteButtons,
                         onButtonTap: handleButtonTap,
@@ -58,7 +66,7 @@ struct ContentView: View {
                         color: userSession.currentUser.mainColor.toColor(),
                         fontSize: userSession.currentUser.textSize
                     )
-                    .frame(width: geometry.size.width * 0.6)
+                    .frame(width: geometry.size.width * 0.4)
                 }
                 .frame(height: geometry.size.height * 0.2)
                 .overlay(

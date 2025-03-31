@@ -33,7 +33,8 @@ func orchestrator(key: String, webViewController: WebViewController?) -> [Button
      /*//WebAction(functionToCall: "A", parameter: "https://www.jlt.se"),
      WebAction(functionToCall: "D", parameter: "jlt-icon-burger-alt-2"),
      WebAction(functionToCall: "D", parameter: "external", willNavigate: true),
-     WebAction(functionToCall: "D", parameter: "sc-bwzfXH ebmuvs sc-htpNat ilEmnI", willNavigate: true),
+     WebAction(functionToCall: "D", parameter: "sc-bwzfXH ebmuvs sc-htpNat il
+      EmnI", willNavigate: true),
      //WebAction(functionToCall: "D", parameter: "btn -flex", willNavigate: true),
      WebAction(functionToCall: "G", parameter: "/html/body/div[2]/div/div[2]/button[2]", willNavigate: true),
      //WebAction(functionToCall: "C", parameter: "email"),
