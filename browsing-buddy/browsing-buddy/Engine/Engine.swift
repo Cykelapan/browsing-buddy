@@ -18,6 +18,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     var isNavigating = false
     var extractedText: String = ""
     var userSession: UserSession
+    var isWaitingForUserInput = false
     
     private var onQueueComplete: (() -> Void)?
     private var lastPageURL: URL?
@@ -80,7 +81,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 }
             }
 
-            if !isNavigating {
+            if !isNavigating && !isWaitingForUserInput {
                 processNextAction()
             }
 
@@ -91,7 +92,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 // Optionally: Notify user, log error, skip action, etc.
             }
             
-            if !isNavigating {
+            if !isNavigating && !isWaitingForUserInput {
                 processNextAction()
             }
 
@@ -224,7 +225,9 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
             return // vänta på navigation
         }
-        processNextAction()
+        if !isWaitingForUserInput {
+            processNextAction()
+        }
     }
     
     func addActions(_ actions: [WebAction], onComplete: (() -> Void)? = nil) {
@@ -964,12 +967,13 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     private func requestUserInput(title: String, prompt: String) {
+        self.isWaitingForUserInput = true
         onRequestUserInput?(title, prompt) { [weak self] userInput in
             guard let self = self else { return }
             
             self.userSession.userInput = userInput
             print("Saved user input: \(userInput)")
-            
+            self.isWaitingForUserInput = false
             self.processNextAction()
         }
     }
