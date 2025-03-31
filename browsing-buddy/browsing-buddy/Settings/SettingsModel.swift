@@ -14,6 +14,8 @@ class SettingsModel {
     var fontSize: CGFloat = 15
     var textToSpeech : Bool = false
     var translation : Bool = false
+    var favoriteColor: Color = Color.clear
+    var mainColor: Color = Color.clear
     var lang = ["Svenska", "Finska", "Norska", "Danska"]
     private var selectedLang : String = "Svenska"
     private var api = AzureFunctionsApi()
@@ -30,8 +32,14 @@ class SettingsModel {
             print(err)
         }
     }
-    
-    func updateUserSession(){
-        
+    func setColorFromUserSession(userSession: UserSession){
+        favoriteColor = userSession.currentUser.favoriteColor.toColor()
+        mainColor = userSession.currentUser.mainColor.toColor()
     }
+    
+    func updateColorUserSession(userSession: UserSession){
+        userSession.currentUser.favoriteColor = ColorData(color: favoriteColor)
+        userSession.currentUser.mainColor = ColorData(color: mainColor)
+    }
+    
 }

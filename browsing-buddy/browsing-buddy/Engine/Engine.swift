@@ -119,7 +119,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         let action = actionQueue.removeFirst()
         print("ELEMENTKEY", action.jsElementKey)
         print("WILLNAVIGATE", action.willNavigate)
-
+        print("FUNCTION TO CALL", action.functionToCall)
 
 
         switch action.functionToCall.rawValue {

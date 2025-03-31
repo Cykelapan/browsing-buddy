@@ -46,19 +46,19 @@ struct ContentView: View {
                     .frame(height: geometry.size.height * 0.8)
 
                 HStack(spacing: 0) {
-                    NavigationButton (text: "inställningar",
+                    NavigationButton (text: "Inställningar",
                                       color: .purple,
                                       fontSize: 22,
                                       route: .settings,
                                       path: $path)
-                    .frame(width: geometry.size.width * 0.2)
+                    .frame(width: geometry.size.width * 0.15)
                     
                     FavoriteButtonView(
                         buttons: userSession.currentUser.favoriteButtons,
                         onButtonTap: handleButtonTap,
                         color: userSession.currentUser.favoriteColor.toColor(),
                         fontSize: userSession.currentUser.textSize                   )
-                    .frame(width: geometry.size.width * 0.4)
+                    .frame(width: geometry.size.width * 0.3)
 
                     ActionButtonView(
                         buttons: currentButtons,
@@ -66,7 +66,7 @@ struct ContentView: View {
                         color: userSession.currentUser.mainColor.toColor(),
                         fontSize: userSession.currentUser.textSize
                     )
-                    .frame(width: geometry.size.width * 0.4)
+                    .frame(width: geometry.size.width * 0.55)
                 }
                 .frame(height: geometry.size.height * 0.2)
                 .overlay(

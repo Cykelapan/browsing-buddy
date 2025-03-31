@@ -24,11 +24,20 @@ struct SettingsView: View {
                     }
                     Text("Example på hur texten blir").font(.system(size: model.fontSize))
                 }
+                Section("Välj färg"){
+                    ColorView(mainColor: $model.mainColor, favColor: $model.favoriteColor)
+                }
             }
-        }.onAppear(perform: {
+        }
+        .onAppear(perform: {
             Task{
                 await model.getInitalStates(selectedFavorites: userSession.currentUser.favoriteButtons)
+                model.setColorFromUserSession(userSession: userSession)
             }
+        })
+        .onDisappear(perform: {
+            
+            model.updateColorUserSession(userSession: userSession)
         })
     }
 }
