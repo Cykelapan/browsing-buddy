@@ -912,6 +912,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         }
     }
     
+    
     private func scrollToElementAndShowText(xpath: String, explanationText: String) {
         let js = """
         function waitForElementAndExplain(xpath, explanationText) {
@@ -941,8 +942,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
 
                     var textBox = document.createElement("div");
                     textBox.style.position = "absolute";
-                    textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
-                    textBox.style.left = (rect.left + window.scrollX) + "px";
+                    //textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
+                    //textBox.style.left = (rect.left + window.scrollX) + "px";
+                    textBox.style.top = (parseFloat(overlay.style.top) + 100 + 10) + "px"; // 10px below the circle
+                    textBox.style.left = (parseFloat(overlay.style.left) - 50) + "px"; 
                     textBox.style.maxWidth = "300px";
                     textBox.style.padding = "10px";
                     textBox.style.backgroundColor = "#FFFFFF";
@@ -966,7 +969,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                         textBox.remove();
                         window.webkit.messageHandlers.callbackHandler.postMessage('Displayed explanation for element: ' + xpath);
                     }, 7000);
-                }, 1000);
+                }, 2000); // ändra till 1000 senare
                 
             } else {
                 console.log("Element not found, retrying...");
@@ -983,6 +986,79 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             }
         }
     }
+    
+    private func scrollToElementAndShowTextId(id: String, explanationText: String) {
+        let js = """
+        function waitForElementAndExplain(id, explanationText) {
+            var element = document.getElementById(id);
+
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                setTimeout(function() {
+                    var rect = element.getBoundingClientRect();
+                    
+                    var blueColor = "rgba(0, 0, 255, 0.8)";
+                    
+                    var overlay = document.createElement("div");
+                    overlay.style.position = "absolute";
+                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px";
+                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px";
+                    overlay.style.width = "100px";
+                    overlay.style.height = "100px";
+                    overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
+                    overlay.style.zIndex = "29998";
+                    overlay.style.pointerEvents = "none";
+                    overlay.style.borderRadius = "50%";
+                    document.body.appendChild(overlay);
+
+                    var textBox = document.createElement("div");
+                    textBox.style.position = "absolute";
+                    //textBox.style.top = (rect.bottom + window.scrollY + 10) + "px"; // 10px below the element
+                    //textBox.style.left = (rect.left + window.scrollX) + "px";
+                    textBox.style.top = (parseFloat(overlay.style.top) + 100 + 10) + "px"; // 10px below the circle
+                    textBox.style.left = (parseFloat(overlay.style.left) - 50) + "px";
+                    textBox.style.maxWidth = "300px";
+                    textBox.style.padding = "10px";
+                    textBox.style.backgroundColor = "#FFFFFF";
+                    textBox.style.border = "2px solid " + blueColor;
+                    textBox.style.borderRadius = "5px";
+                    textBox.style.zIndex = "29999";
+                    textBox.style.color = "#000000";
+                    textBox.style.fontFamily = "Arial, sans-serif";
+                    textBox.style.fontSize = "22px";
+                    textBox.style.lineHeight = "1.5";
+                    textBox.style.boxShadow = "0 2px 5px rgba(0,0,0,0.2)"; // Keeping subtle shadow for definition
+                    textBox.innerHTML = explanationText;
+                    document.body.appendChild(textBox);
+
+                    if (rect.width > 300) {
+                        textBox.style.width = rect.width + "px";
+                    }
+
+                    setTimeout(function() {
+                        overlay.remove();
+                        textBox.remove();
+                        window.webkit.messageHandlers.callbackHandler.postMessage('Displayed explanation for element: ' + id);
+                    }, 7000);
+                }, 2000); // ändra till 1000 senare
+                
+            } else {
+                console.log("Element not found, retrying...");
+                setTimeout(function() { waitForElementAndExplain(id, explanationText); }, 1000);
+            }
+        }
+        waitForElementAndExplain('\(id)', `\(explanationText)`);
+        """
+        
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("JavaScript injection error: \(error.localizedDescription)")
+                self.processNextAction()
+            }
+        }
+    }
+    
     private func requestUserInput(title: String, prompt: String) {
         onRequestUserInput?(title, prompt) { [weak self] userInput in
             guard let self = self else { return }
