@@ -15,6 +15,7 @@ import SwiftUI
 class PreEngine {
     static let shared = PreEngine()
     private let api = AzureFunctionsApi()
+    @EnvironmentObject var userSession: UserSession
     //remember old state if something goes wrong?
     //private let stateButtons = nil
     private init() {}
@@ -25,7 +26,8 @@ class PreEngine {
 
         switch result {
         case .success(let responseData):
-            await webViewController.addActions(responseData.webCommands){
+            if (responseData.webCommands.)
+            webViewController.addActions(responseData.webCommands){
                 updateButtons(responseData.uiButtons)
             }
 

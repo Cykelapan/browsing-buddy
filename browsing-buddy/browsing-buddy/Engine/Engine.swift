@@ -171,7 +171,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "INSERT_ELEMENT_XPATH":
             //print("INSERT_ELEMENT_XPATH")
             //fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { //bara test
+                self.userSession.valueToIbject = action.valueToInject ?? ""
              self.fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
              }
             
@@ -194,13 +195,18 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
              }
             
         case "CLICK_ELEMENT_XPATH_HIGHLIGHT":
-            clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
+            /*clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)*/
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
+            }
             
         case "WAIT_FOR_MANUAL_NAVIGATION":
             waitForWebChange()
             
         case "SCROLL_TO_ELEMENT_AND_SHOW_TEXT":
-            scrollToElementAndShowText(xpath: action.jsElementKey, explanationText: action.descriptionMessage)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                self.scrollToElementAndShowText(xpath: action.jsElementKey, explanationText: action.descriptionMessage)
+            }
             
         case "EXTRACT_BOOKED_TIMES_1177":
             extractBookedTimes1177(xpath: action.jsElementKey)

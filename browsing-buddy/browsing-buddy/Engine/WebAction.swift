@@ -65,7 +65,7 @@ struct WebAction : Codable{
     //    - Otherwise, the value is extracted from `UserSession`.
     let extractFromUser : ExtractFromUser
     
-    let valueToInject: String
+    let valueToInject: String?
     
     // Whether the action requires access to the calendar.
     let accessCalendar : Bool
@@ -93,7 +93,7 @@ struct WebAction : Codable{
             self.accessCalendar = try container.decodeIfPresent(Bool.self, forKey: .accessCalendar) ?? false
             self.informationTitle = try container.decodeIfPresent(String.self, forKey: .informationTitle) ?? "Ingen tillgänglig informations title"
             self.descriptionMessage = try container.decodeIfPresent(String.self, forKey: .descriptionMessage) ?? "Ingen tillgänglig informations förklaring"
-            self.valueToInject = try container.decodeIfPresent(String.self, forKey: .valueToInject) ?? "Ingen tillgänglig string från DB att injecta"
+            self.valueToInject = try container.decodeIfPresent(String.self, forKey: .valueToInject)
             
             // Kan göras egna codingkeys
             //https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
