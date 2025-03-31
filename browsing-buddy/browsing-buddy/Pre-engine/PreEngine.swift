@@ -26,7 +26,6 @@ class PreEngine {
 
         switch result {
         case .success(let responseData):
-            if (responseData.webCommands.)
             webViewController.addActions(responseData.webCommands){
                 updateButtons(responseData.uiButtons)
             }
