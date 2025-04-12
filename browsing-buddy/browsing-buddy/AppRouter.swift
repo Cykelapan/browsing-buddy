@@ -11,14 +11,22 @@ import SwiftUI
 class AppRouter: ObservableObject {
     @Published var navigationPath = NavigationPath()
     
-    func navigateToMain(){
-        navigationPath.append(Routes.MainView)
+    func navigateToWebview(){
+        navigationPath.append(Routes.WebView)
     }
-    func navigateToAppSettings(){
-        navigationPath.append(Routes.AppSettings)
+    
+    func navigateToWebviewSettings(){
+        navigationPath.append(Routes.WebViewSettings)
+    }
+    
+    func navigateToIconsView(){
+        navigationPath.append(Routes.IconListView)
     }
     func navigateToUserSettings(){
         navigationPath.append(Routes.UserSettings)
+    }
+    func navigateToAppSettings(){
+        navigationPath.append(Routes.AppSettings)
     }
     
     func navigateBack(){
@@ -30,24 +38,47 @@ class AppRouter: ObservableObject {
 
 
 enum Routes: Hashable {
-    case MainView
+    case WebView
+    case WebViewSettings
     case AppSettings
     case UserSettings
+    case IconListView
+    //case LandingPageView
+    //case LoginView
+    //case RegisterView
 }
 
-/*
-struct ContainerView: View {
-    @State private var router = AppRouter()
+
+struct MainView: View {
+    @EnvironmentObject var router: AppRouter
     
     var body: some View {
         NavigationStack(path: $router.navigationPath) {
-            ContentView(path: <#T##Binding<NavigationPath>#>)
+            MainMenuView()
                 .environmentObject(router)
+                .navigationTitle("Meny")
                 .navigationDestination(for: Routes.self, destination: { route in
                     switch route {
                     case .AppSettings:
+                        AppSettingsView()
                         
                     case .UserSettings:
+                        UserSettingsView()
+                        
+                    case .WebView:
+                        ContentView()
+                        
+                    case .WebViewSettings:
+                        WebSettingsView()
+                        
+                    case .IconListView:
+                        IconListView()
+                        
+                    //case .LandingPageView:
+                        
+                    //case .LoginView:
+                        
+                    //case .RegisterView:
                         
                     }
                     
@@ -56,4 +87,8 @@ struct ContainerView: View {
         }
     }
 }
-*/
+
+
+#Preview {
+    MainView()
+}

@@ -48,6 +48,28 @@ struct FavoriteButtonView: View {
     }
 }
 
+struct CustomButtonNav: View {
+    let text: String
+    let color: Color
+    let fontSize: Int
+    let action: () -> Void
+    
+
+    var body: some View {
+        Button(action: action) {
+            Text(text)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(color)
+                .font(.system(size: CGFloat(fontSize)))
+                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+        }
+    }
+}
+
 struct CustomButton: View {
     let text: String
     let color: Color
@@ -94,7 +116,7 @@ struct CustomButtonWithClosure: View {
         }
     }
 }
-
+/*
 struct NavigationButton: View {
     let text: String
     let color: Color
@@ -116,7 +138,7 @@ struct NavigationButton: View {
         }
     }
 }
-
+*/
 struct NavigationButtonSetup: View {
     let text: String
     let color: Color

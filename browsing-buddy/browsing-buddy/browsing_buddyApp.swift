@@ -11,6 +11,7 @@ import SwiftUI
 struct browsing_buddyApp: App {
     //användaren global
     @StateObject var userSession = UserSession(currentUser: createUserProfile(userId: "", email: "", password: ""))
+    @StateObject private var router = AppRouter()
     
     var body: some Scene {
         WindowGroup {
@@ -18,8 +19,8 @@ struct browsing_buddyApp: App {
                 LandingPage()
             } else {
                 //TODO: contentView and that navigation
-                ParentView()
+                MainView()
             }
-        }.environmentObject(userSession)
+        }.environmentObject(userSession).environmentObject(router)
     }
 }

@@ -29,11 +29,11 @@ enum PopupType: Identifiable {
 // denna struct kommer vara enorm...
 struct ContentView: View {
     @EnvironmentObject var userSession: UserSession
+    @EnvironmentObject var router: AppRouter
     @State private var webViewController: WebViewController? = nil
     @State private var currentButtons: [UIButtonData] = []
     @StateObject private var calendarManager = CalendarEventManager()
     @State private var showSuccessPopup = false
-    @Binding  var path: NavigationPath
     @State private var currentInputText = ""
     
     @State private var activePopup: PopupType? = nil
@@ -46,11 +46,10 @@ struct ContentView: View {
                     .frame(height: geometry.size.height * 0.8)
 
                 HStack(spacing: 0) {
-                    NavigationButton (text: "Inställningar",
-                                      color: .purple,
-                                      fontSize: 22,
-                                      route: .settings,
-                                      path: $path)
+                    CustomButton (text: "Inställningar",
+                                  color: .purple,
+                                  fontSize: 22,
+                                  action: {router.navigateToWebviewSettings()})
                     .frame(width: geometry.size.width * 0.15)
                     
                     FavoriteButtonView(

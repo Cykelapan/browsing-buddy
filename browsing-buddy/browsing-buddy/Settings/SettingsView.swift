@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SettingsView: View {
+struct WebSettingsView: View {
     @EnvironmentObject var userSession: UserSession
     @State private var model =  SettingsModel()
     
@@ -43,5 +43,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView()
+    WebSettingsView()
 }
