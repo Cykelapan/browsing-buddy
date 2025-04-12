@@ -64,16 +64,6 @@ struct AppSettingsView: View {
     }
 }
 
-struct UserSettingsView: View {
-    @EnvironmentObject var router: AppRouter
-    var body: some View {
-        Text("Hello, UserSettingsView!")
-        Button("Back") {
-            router.navigateBack()
-            
-        }
-    }
-}
 
 #Preview {
     MainMenuView()
