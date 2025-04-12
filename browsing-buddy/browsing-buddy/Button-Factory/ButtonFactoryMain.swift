@@ -62,7 +62,7 @@ struct CustomButton: View {
                 .frame(maxWidth: .infinity)
                 .background(color)
                 .font(.system(size: CGFloat(fontSize)))
-                .minimumScaleFactor(0.2)
+                .minimumScaleFactor(0.4)
                 .lineLimit(1)
                 .foregroundColor(.white)
                 .cornerRadius(8)
