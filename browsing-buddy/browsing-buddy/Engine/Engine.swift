@@ -171,7 +171,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "INSERT_ELEMENT_XPATH":
             //print("INSERT_ELEMENT_XPATH")
             //fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { //bara test
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { //bara test
                 self.userSession.valueToIbject = action.valueToInject ?? ""
              self.fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
              }
@@ -841,7 +841,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                     overlay.style.pointerEvents = "none";
                     overlay.style.borderRadius = "50%"; // Circle shape
 
-                    document.body.appendChild(overlay);
+                    document.body.appendChild(overlay); /html/body/div[1]/div[1]/div[1]/div/div/div/div[2]/div/div[1]/form/div[2]/button
 
                     setTimeout(function() {
                         overlay.remove();
