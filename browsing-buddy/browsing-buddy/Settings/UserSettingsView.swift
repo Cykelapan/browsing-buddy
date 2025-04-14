@@ -153,6 +153,8 @@ struct AddAccountPasswordView: View {
                         HStack {
                             Text("Användarnamn:")
                             TextField("Användarnamn", text: $selectedUsername)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .padding(.vertical)
                             
@@ -180,7 +182,7 @@ struct AddAccountPasswordView: View {
                             userSession.accounts.append(AccountPasswordManager(websiteName: selectedWebsite, websiteUrl: selectedWebsite, username: selectedUsername, password: selectedPassword))
                             userSession.currentUser.email = selectedUsername
                             userSession.currentUser.password = selectedPassword
-                            
+                            print("Saved account", userSession.currentUser.email)
                             showPopup.toggle()
                         })
                         
@@ -213,6 +215,8 @@ struct EditAccountView: View {
                         HStack {
                             Text("Användarnamn:")
                             TextField("Användarnamn", text: $account.username)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .padding(.vertical)
                             
@@ -220,6 +224,8 @@ struct EditAccountView: View {
                         HStack{
                             Text("Lösenord: ")
                             TextField("Lösenord", text: $account.password)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .padding(.vertical)
                         }
