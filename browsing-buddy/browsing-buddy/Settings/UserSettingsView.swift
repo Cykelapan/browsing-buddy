@@ -178,6 +178,9 @@ struct AddAccountPasswordView: View {
                     if passwordMatch {
                         CustomButton(text: "Lägg till", color: Color.green, fontSize: 22, action: {
                             userSession.accounts.append(AccountPasswordManager(websiteName: selectedWebsite, websiteUrl: selectedWebsite, username: selectedUsername, password: selectedPassword))
+                            userSession.currentUser.email = selectedUsername
+                            userSession.currentUser.password = selectedPassword
+                            
                             showPopup.toggle()
                         })
                         
