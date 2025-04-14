@@ -7,21 +7,7 @@
 
 import SwiftUI
 import Observation
-@Observable
-class AccountsPasswordManager: Identifiable {
-    var id = UUID()
-    var websiteName : String
-    var websiteUrl : String
-    var username : String
-    var password : String
-    init(id: UUID = UUID(), websiteName: String, websiteUrl: String, username: String, password: String) {
-        self.id = id
-        self.websiteName = websiteName
-        self.websiteUrl = websiteUrl
-        self.username = username
-        self.password = password
-    }
-}
+
 
 //För settings av användare
 // Textstorlek, Färg?, Favoriter
@@ -35,9 +21,9 @@ struct TESTVIEW: View {
     @State private var singleSelectionAccounts: UUID? = nil
     
     @State var accounts = [
-        AccountsPasswordManager(websiteName: "1177", websiteUrl: "https://1177.se", username: "user1177", password: "p@ssw0rd1234"),
-        AccountsPasswordManager(websiteName: "Figma.com", websiteUrl: "https://www.figma.com", username: "figmaUser2025", password: "figmaPass@567"),
-        AccountsPasswordManager(websiteName: "jlt.se", websiteUrl: "https://www.jlt.se", username: "jltUser007", password: "jltSecure!2025")
+        AccountPasswordManager(websiteName: "1177", websiteUrl: "https://1177.se", username: "user1177", password: "p@ssw0rd1234"),
+        AccountPasswordManager(websiteName: "Figma.com", websiteUrl: "https://www.figma.com", username: "figmaUser2025", password: "figmaPass@567"),
+        AccountPasswordManager(websiteName: "jlt.se", websiteUrl: "https://www.jlt.se", username: "jltUser007", password: "jltSecure!2025")
     ]
     @State private var selectedFavorites: [UIButtonData] = []
     @State private var avalibleWebsites: [UIButtonData] =  []
@@ -51,9 +37,7 @@ struct TESTVIEW: View {
                         FavoriteWebsitesView(selectedFavorites: $selectedFavorites, avalibleWebsites: $avalibleWebsites).padding()
                         
                     }
-                    Section("Kopplade konton") {
-                        AccountListView(accounts: $accounts)
-                    }
+                    
                     
                     
                     Section("Tecken strolek \(Int(fontSize))") {
@@ -63,7 +47,12 @@ struct TESTVIEW: View {
                         Text("Example på hur texten blir").font(.system(size: fontSize))
                     }
                     Section("Annat"){
-                        Toggle("Uppläsning av text", isOn: $textToSpeech)
+                        
+                        HStack {
+                            Text("Hey").frame(alignment: .leading)
+                            TextField("Text att läsa", text: $selectedLang).multilineTextAlignment(.trailing)
+                        }
+                        
                         HStack {
                             Picker("Välj språk ", selection: $selectedLang) {
                                 ForEach(lang, id: \.self){ i in
@@ -92,66 +81,7 @@ struct TESTVIEW: View {
     }
 }
 
-struct AccountListView: View {
-    @Binding var accounts : [AccountsPasswordManager]
-     
-    var body: some View {
-            List {
-                ForEach(accounts){ account in
-                    NavigationLink(
-                        destination: EditAccountView(account: account)) {
-                        Text(account.websiteName)
-                    }
-                    
-                }.onDelete(perform: deleteAccount)
-            }.navigationTitle("Registerade konton")
-        
-    }
-    
-    func deleteAccount(at offsets: IndexSet) {
-        accounts.remove(atOffsets: offsets)
-    }
-}
 
-struct EditAccountView: View {
-    @State var account : AccountsPasswordManager
-    
-    var body: some View {
-        VStack {
-            Text("Uppdatera din information på " + account.websiteName)
-                .font(.title)
-                .padding()
-            
-            Text("Hemsida")
-            TextField(account.websiteUrl, text: $account.websiteUrl)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .background(RoundedRectangle(cornerRadius: 10))
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .padding(.horizontal)
-                
-            Text("Användarnamn ")
-            TextField(account.username, text: $account.username)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .background(RoundedRectangle(cornerRadius: 10))
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .padding(.horizontal)
-                
-           
-            Text("Lösenord ")
-            TextField(account.password, text: $account.password)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .background(RoundedRectangle(cornerRadius: 10))
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .padding(.horizontal)
-                
-        
-            
-        }
-    }
-}
 #Preview {
     TESTVIEW()
     //FavoriteWebsitesView()

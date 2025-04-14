@@ -123,6 +123,7 @@ class UserSession: ObservableObject {
     @Published var currentUser: UserProfile
     @Published var userInput: String = ""
     @Published var valueToIbject: String = ""
+    @Published var accounts: [AccountPasswordManager] = []
     init(currentUser: UserProfile) {
         self.currentUser = currentUser
     }
