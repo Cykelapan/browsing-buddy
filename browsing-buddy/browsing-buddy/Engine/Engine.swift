@@ -105,6 +105,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     func startProcessingQueue() {
         guard !isProcessing, !actionQueue.isEmpty else { return }
         isProcessing = true
+        print("action is called")
         processNextAction()
     }
     
@@ -173,6 +174,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             //fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { //bara test
                 self.userSession.valueToIbject = action.valueToInject ?? ""
+                print ("Value injected: \(self.userSession.valueToIbject)")
              self.fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
              }
             
@@ -195,11 +197,11 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
              }
             
         case "CLICK_ELEMENT_XPATH_HIGHLIGHT":
-            /*clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)*/
+            //clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 self.clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
             }
-            
+        
         case "WAIT_FOR_MANUAL_NAVIGATION":
             waitForWebChange()
             
@@ -210,6 +212,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "EXTRACT_BOOKED_TIMES_1177":
             extractBookedTimes1177(xpath: action.jsElementKey)
+            
             
         case "INSERT_ELEMENT_ID":
             print("INSERT_ELEMENT_ID")
@@ -241,7 +244,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     }
     
     func addActions(_ actions: [WebAction], onComplete: (() -> Void)? = nil) {
-        print("action is called")
+        //print("action is called")
         actionQueue.append(contentsOf: actions)
         onQueueComplete = onComplete
         startProcessingQueue()
@@ -812,62 +815,118 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
     
     //klar
     private func clickElementByXPathHighlight(xpath: String, willNavigate navigate: Bool) {
-        isNavigating = navigate
-        
-       let js = """
-        function waitForElement(xpath) {
-            var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-            var element = result.singleNodeValue;
 
-            if (element) {
-                console.log("Element found via XPath, scrolling and adding overlay...");
+            isNavigating = navigate
 
-                //idiot vänta på den
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
 
-                // Jupp!! Där satt den! Tack Indiska Youtube!
-                setTimeout(function() {
+           let js = """
 
-                    var rect = element.getBoundingClientRect();
+            function waitForElement(xpath) {
 
-                    var overlay = document.createElement("div");
-                    overlay.style.position = "absolute";
-                    overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px";
-                    overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px";
-                    overlay.style.width = "100px";
-                    overlay.style.height = "100px";
-                    overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
-                    overlay.style.zIndex = "5000";
-                    overlay.style.pointerEvents = "none";
-                    overlay.style.borderRadius = "50%"; // Circle shape
+                var result = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
 
-                    document.body.appendChild(overlay); /html/body/div[1]/div[1]/div[1]/div/div/div/div[2]/div/div[1]/form/div[2]/button
+                var element = result.singleNodeValue;
+
+
+
+                if (element) {
+
+                    console.log("Element found via XPath, scrolling and adding overlay...");
+
+
+
+                    //idiot vänta på den
+
+                    element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+
+
+                    // Jupp!! Där satt den! Tack Indiska Youtube!
 
                     setTimeout(function() {
-                        overlay.remove();
-                        element.click();
-                        console.log("Element clicked!");
 
-                        window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element via XPath: ' + xpath);
-                    }, 3000);
 
-                }, 1000);
-                
-            } else {
-                console.log("Element not found, retrying...");
-                setTimeout(function() { waitForElement(xpath); }, 1000); // Gör om gör rätt!
+
+                        var rect = element.getBoundingClientRect();
+
+
+
+                        var overlay = document.createElement("div");
+
+                        overlay.style.position = "absolute";
+
+                        overlay.style.top = (rect.top + window.scrollY + (rect.height / 2) - 50) + "px";
+
+                        overlay.style.left = (rect.left + window.scrollX + (rect.width / 2) - 50) + "px";
+
+                        overlay.style.width = "100px";
+
+                        overlay.style.height = "100px";
+
+                        overlay.style.backgroundColor = "rgba(0, 0, 255, 0.3)";
+
+                        overlay.style.zIndex = "5000";
+
+                        overlay.style.pointerEvents = "none";
+
+                        overlay.style.borderRadius = "50%"; // Circle shape
+
+
+
+                        document.body.appendChild(overlay);
+
+
+
+                        setTimeout(function() {
+
+                            overlay.remove();
+
+                            element.click();
+
+                            console.log("Element clicked!");
+
+
+
+                            window.webkit.messageHandlers.callbackHandler.postMessage('Clicked element via XPath: ' + xpath);
+
+                        }, 3000);
+
+
+
+                    }, 1000);
+
+                    
+
+                } else {
+
+                    console.log("Element not found, retrying...");
+
+                    setTimeout(function() { waitForElement(xpath); }, 1000); // Gör om gör rätt!
+
+                }
+
             }
-        }
-        waitForElement('\(xpath)');
-        """
-        
-        webView.evaluateJavaScript(js) { _, error in
-            if let error = error {
-                print("JavaScript injection error: \(error.localizedDescription)")
-                self.processNextAction()
+
+            waitForElement('\(xpath)');
+
+            """
+
+            
+
+            webView.evaluateJavaScript(js) { _, error in
+
+                if let error = error {
+
+                    print("JavaScript injection error: \(error.localizedDescription)")
+
+                    self.processNextAction()
+
+                }
+
             }
+
         }
-    }
     
     //Klar
     private func waitForWebChange() {

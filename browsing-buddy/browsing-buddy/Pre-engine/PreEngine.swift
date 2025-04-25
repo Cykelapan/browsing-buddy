@@ -10,7 +10,7 @@ import SwiftUI
 //DB connection
 //Engine connection
 //Button factory
-//Initial state -> start webbrowser, buttons and so on
+//Initial state -> start webbrowser, buttons and so on //*[@id="topWrapper"]/header/div[1]/ul/li[3]/a
 
 class PreEngine {
     static let shared = PreEngine()
@@ -33,7 +33,7 @@ class PreEngine {
     public func buttonAction(button: UIButtonData, webViewController: WebViewController, updateButtons: @escaping ([UIButtonData]) -> Void ) async {
         let request = NextWebstateRequest(body: button)
         let result = await api.send(request)
-        loggAction(button: button)
+        //loggAction(button: button)
         switch result {
         case .success(let responseData):
             webViewController.addActions(responseData.webCommands){
