@@ -52,7 +52,7 @@ protocol ApiRequest {
 }
 
 class AzureFunctionsApi {
-    private let baseURI: String = "https://0635-212-25-138-239.ngrok-free.app/api/"
+    private let baseURI: String = "https://ef57-212-25-143-253.ngrok-free.app/api/"
     private var session: URLSession = URLSession.shared
     //Om token och entraID behövs sen
     private let tokenProvider:  () -> String? = { nil }

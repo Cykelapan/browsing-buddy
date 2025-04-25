@@ -20,9 +20,9 @@ enum MainMenuItem: CaseIterable {
         case .iconView:
             return "Ikoner"
         case .userSettings:
-            return "Användar Inställningar"
+            return "Användarinställningar"
         case .appSettings:
-            return "App Inställningar"
+            return "Appinställningar"
         }
     }
     func action (router:  AppRouter) -> Void{

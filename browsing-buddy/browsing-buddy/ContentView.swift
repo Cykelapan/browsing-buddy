@@ -43,7 +43,7 @@ struct ContentView: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 EngineView(webViewController: $webViewController, userSession: userSession)
-                    .frame(height: geometry.size.height * 0.8)
+                    .frame(height: geometry.size.height * 0.75)
 
                 HStack(spacing: 0) {
                     CustomButton (text: "Inställningar",
@@ -67,7 +67,7 @@ struct ContentView: View {
                     )
                     .frame(width: geometry.size.width * 0.55)
                 }
-                .frame(height: geometry.size.height * 0.2)
+                .frame(height: geometry.size.height * 0.25)
                 .overlay(
                     Rectangle()
                         .frame(height: 1)

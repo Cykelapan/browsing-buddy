@@ -14,16 +14,22 @@ struct ActionButtonView: View {
     let fontSize: Int
 
     var body: some View {
-        VStack(spacing: 5) {
-            ForEach(buttons, id: \.nextStateKey) { buttonData in
-                CustomButton(text: buttonData.buttonText, color: color, fontSize: fontSize) {
-                    Task{await onButtonTap(buttonData)}
+        GeometryReader { geometry in
+            VStack(spacing: 4) {
+                ForEach(buttons, id: \.nextStateKey) { buttonData in
+                    CustomButton(
+                        text: buttonData.buttonText,
+                        color: color,
+                        fontSize: fontSize
+                    ) {
+                        Task { await onButtonTap(buttonData) }
+                    }
+                    // Calculate the height by dividing available space by button count
+                    .frame(height: (geometry.size.height - CGFloat(16) - (CGFloat(buttons.count - 1) * 4)) / CGFloat(buttons.count))
                 }
-                .frame(maxHeight: .infinity)
             }
+            .padding(8)
         }
-        .padding()
-        .frame(maxHeight: .infinity)
     }
 }
 
@@ -34,17 +40,21 @@ struct FavoriteButtonView: View {
     let fontSize: Int
 
     var body: some View {
-        VStack(spacing: 5) {
-            ForEach(buttons, id: \.nextStateKey) { buttonData in
-                CustomButton(text: buttonData.buttonText, color: color, fontSize: fontSize) {
-                    
-                    Task{await onButtonTap(buttonData)}
+        GeometryReader { geometry in
+            VStack(spacing: 5) {
+                ForEach(buttons, id: \.nextStateKey) { buttonData in
+                    CustomButton(
+                        text: buttonData.buttonText,
+                        color: color,
+                        fontSize: fontSize
+                    ) {
+                        Task { await onButtonTap(buttonData) }
+                    }
+                    .frame(height: (geometry.size.height - CGFloat(16) - (CGFloat(buttons.count - 1) * 5)) / CGFloat(buttons.count))
                 }
-                .frame(maxHeight: .infinity)
             }
+            .padding(8)
         }
-        .padding()
-        .frame(maxHeight: .infinity)
     }
 }
 
