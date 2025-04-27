@@ -216,6 +216,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "INSERT_ELEMENT_ID":
             self.userSession.valueToIbject = action.valueToInject ?? ""
+            print ("Value injected: \(self.userSession.valueToIbject)")
             print("INSERT_ELEMENT_ID")
             fillElementById(id: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
         
