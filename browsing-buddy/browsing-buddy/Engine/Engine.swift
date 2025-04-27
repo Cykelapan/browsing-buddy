@@ -71,7 +71,8 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 if messageBody.starts(with: "ExtractedText:") {
                     let extracted = messageBody.replacingOccurrences(of: "ExtractedText:", with: "")
                     self.extractedText = extracted
-                    print("Extracted text saved: \(self.extractedText)")
+                    userSession.extractedText = extracted
+                    //print("Extracted text saved: \(self.extractedText)")
                 } else if messageBody.starts(with: "ExtractedList:") {
                     let extracted = messageBody.replacingOccurrences(of: "ExtractedList:", with: "")
                     self.extractedText = extracted
@@ -172,7 +173,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "INSERT_ELEMENT_XPATH":
             //print("INSERT_ELEMENT_XPATH")
             //fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.0) { //bara test
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
                 self.userSession.valueToIbject = action.valueToInject ?? ""
                 print ("Value injected: \(self.userSession.valueToIbject)")
              self.fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
