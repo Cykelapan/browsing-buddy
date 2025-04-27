@@ -127,6 +127,7 @@ class UserSession: ObservableObject {
     init(currentUser: UserProfile) {
         self.currentUser = currentUser
     }
+    @Published var extractedText: String = ""
 }
 
 

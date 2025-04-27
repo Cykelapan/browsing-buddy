@@ -51,7 +51,7 @@ struct LandingPage: View {
         }
     }
     func devLogin(){
-        userSession.currentUser = createUserProfile(userId: "67d5a5529f6dda8d51da627d", email: "aa@aa.aa", password: "aa")
+        userSession.currentUser = createUserProfile(userId: "67d5a5529f6dda8d51da627d", email: "9501242672", password: "5555")
     }
 }
 

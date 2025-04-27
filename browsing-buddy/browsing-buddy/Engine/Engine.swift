@@ -71,7 +71,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
                 if messageBody.starts(with: "ExtractedText:") {
                     let extracted = messageBody.replacingOccurrences(of: "ExtractedText:", with: "")
                     self.extractedText = extracted
-                    // print("Extracted text saved: \(self.extractedText)") för debugging
+                    print("Extracted text saved: \(self.extractedText)")
                 } else if messageBody.starts(with: "ExtractedList:") {
                     let extracted = messageBody.replacingOccurrences(of: "ExtractedList:", with: "")
                     self.extractedText = extracted
@@ -161,10 +161,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
              }*/
         case "CLICK_ELEMENT_XPATH":
             print("Entered CLICK_ELEMENT_XPATH")
-            clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
-            /*DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { //bara test
+            //clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { //bara test
              self.clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
-             }*/
+             }
         case "EXTRACT_TEXT_XPATH":
             print("Entered EXTRACT_TEXT_XPATH")
             extractTextByXPath(xpath: action.jsElementKey)
@@ -186,7 +186,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
              }*/
             
         case "EXTRACT_LIST_BY_XPATH":
-            print("EXTRACT_LIST_BY_XPATH")
+                print("EXTRACT_LIST_BY_XPATH")
             extractListItemsByXPath(xpath: action.jsElementKey)
             
             
@@ -687,6 +687,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         isNavigating = navigate
         
         let valueToInsert = valueType.getValue(session: userSession)
+        print("USER INPUT IN FUNCTION: \(valueToInsert)")
         
         let escapedValue = valueToInsert.replacingOccurrences(of: "'", with: "\\'")
         

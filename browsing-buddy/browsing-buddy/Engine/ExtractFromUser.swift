@@ -19,6 +19,7 @@ enum ExtractFromUser : String, Codable{
     case GET_USER_AGE = "GET_USER_AGE"
     case GET_USER_INPUT = "GET_USER_INPUT"
     case VALUE_TO_INJECT = "VALUE_TO_INJECT"
+    case EXTRACTED_MESSAGE = "EXTRACTED_MESSAGE"
     
     //Koppla till användarens data
     func getValue(session: UserSession) -> String {
@@ -44,6 +45,8 @@ enum ExtractFromUser : String, Codable{
             return session.userInput
         case .VALUE_TO_INJECT:
             return session.valueToIbject
+        case .EXTRACTED_MESSAGE:
+            return session.extractedText
         }
     }
 }
