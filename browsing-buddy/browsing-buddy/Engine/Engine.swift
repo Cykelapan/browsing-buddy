@@ -163,12 +163,14 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
         case "CLICK_ELEMENT_XPATH":
             print("Entered CLICK_ELEMENT_XPATH")
             //clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { //bara test
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
              self.clickElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate )
              }
         case "EXTRACT_TEXT_XPATH":
             print("Entered EXTRACT_TEXT_XPATH")
-            extractTextByXPath(xpath: action.jsElementKey)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
+                self.extractTextByXPath(xpath: action.jsElementKey)
+            }
             
         case "INSERT_ELEMENT_XPATH":
             //print("INSERT_ELEMENT_XPATH")
@@ -176,7 +178,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { //bara test
                 self.userSession.valueToIbject = action.valueToInject ?? ""
                 print ("Value injected: \(self.userSession.valueToIbject)")
-             self.fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
+                self.fillElementByXPath(xpath: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
              }
             
         case "INSERT_ELEMENT_CLASS":
@@ -188,18 +190,20 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "EXTRACT_LIST_BY_XPATH":
                 print("EXTRACT_LIST_BY_XPATH")
-            extractListItemsByXPath(xpath: action.jsElementKey)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.extractListItemsByXPath(xpath: action.jsElementKey)
+            }
             
             
         case "CLICK_ELEMENT_CLASS_HIGHLIGHT":
             //clickElementClassHighlight(withClass: action.jsElementKey, willNavigate: action.willNavigate)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
              self.clickElementClassHighlight(withClass: action.jsElementKey, willNavigate: action.willNavigate)
              }
             
         case "CLICK_ELEMENT_XPATH_HIGHLIGHT":
             //clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
             }
         
@@ -207,7 +211,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             waitForWebChange()
             
         case "SCROLL_TO_ELEMENT_AND_SHOW_TEXT":
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 self.scrollToElementAndShowText(xpath: action.jsElementKey, explanationText: action.descriptionMessage)
             }
             
@@ -217,10 +221,10 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "INSERT_ELEMENT_ID":
             self.userSession.valueToIbject = action.valueToInject ?? ""
-            print ("Value injected: \(self.userSession.valueToIbject)")
             print("INSERT_ELEMENT_ID")
-            fillElementById(id: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
-        
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                self.fillElementById(id: action.jsElementKey, willNavigate: action.willNavigate, valueType: action.extractFromUser)
+            }
         case "FILL_GOOGLE_SEARCH_BOX":
             fillGoogleSearchBox(xpath: action.jsElementKey, valueType: action.extractFromUser, willNavigate: action.willNavigate)
             
