@@ -17,13 +17,14 @@ class PreEngine {
     private let api = AzureFunctionsApi()
     @EnvironmentObject var userSession: UserSession
     //remember old state if something goes wrong?
-    //private let stateButtons = nil
+    private var websiteName: String = ""
+    private var stateDesc: String = ""
     private init() {}
     
-    private func loggAction(button: UIButtonData) {
+    private func loggAction(button: UIButtonData, error: String? = nil) {
         DispatchQueue.global(qos: .background).async {
             let date = Date()
-            let request = LoggerRequest(button: button, time: date.description)
+            let request = LoggerRequest(button: button, time: date.description, name: self.websiteName, state: self.stateDesc, error: error)
             Task {
                 await self.api.send(request)
             }
@@ -36,12 +37,18 @@ class PreEngine {
         //loggAction(button: button)
         switch result {
         case .success(let responseData):
+            self.stateDesc = responseData.state
+            self.websiteName = responseData.website
+            //loggAction(button: button)
+            
             webViewController.addActions(responseData.webCommands){
                 updateButtons(responseData.uiButtons)
             }
 
         case .failure(let error):
             //TODO: find and backuplist when it do not work
+            
+            loggAction(button: button, error: error.localizedDescription)
             print("Error:", error.localizedDescription)
         }
     }
