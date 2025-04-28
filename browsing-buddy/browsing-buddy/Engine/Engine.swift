@@ -203,7 +203,7 @@ class WebViewController: UIViewController, WKNavigationDelegate, WKScriptMessage
             
         case "CLICK_ELEMENT_XPATH_HIGHLIGHT":
             //clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                 self.clickElementByXPathHighlight(xpath: action.jsElementKey, willNavigate: action.willNavigate)
             }
         
